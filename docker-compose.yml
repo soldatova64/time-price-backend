@@ -1,0 +1,12 @@
+services:
+  server:
+    image: soldatova64/time-price-backend:latest
+    build: .
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    environment:
+      - ENV=development
+    volumes:
+      - ./:/app
+    command: go run main.go
