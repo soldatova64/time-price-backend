@@ -1,19 +1,38 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 )
 
+type Meta struct {
+	Action string `json:"action"`
+}
+
+type Response struct {
+	Meta Meta                   `json:"meta"`
+	Data map[string]interface{} `json:"data"`
+}
+
 func main() {
-	http.HandleFunc("/", pageHome)
+	http.HandleFunc("/", PageHome)
+	log.Println("Сервер запущен на http://localhost:80")
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Fatal("Ошибка сервера: ", err)
 	}
 }
 
-func pageHome(writer http.ResponseWriter, request *http.Request) {
-	fmt.Fprintf(writer, "Привет!")
+func PageHome(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Content-Type", "application/json")
+
+	response := Response{
+		Meta: Meta{Action: "home"},
+		Data: make(map[string]interface{}),
+	}
+
+	if err := json.NewEncoder(writer).Encode(response); err != nil {
+		http.Error(writer, "Ошибка формирования JSON", http.StatusInternalServerError)
+	}
 }
