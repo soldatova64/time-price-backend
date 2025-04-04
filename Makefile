@@ -1,5 +1,5 @@
 # Переменные
-IMAGE_NAME = soldatova64/time-price-backend:latest
+IMAGE_NAME = soldatova64/time-price-backend
 VERSION = latest
 REGISTRY = docker.io/soldatovadew
 
