@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"main/db"
 	"net/http"
 )
 
@@ -16,6 +17,8 @@ type Response struct {
 }
 
 func main() {
+	db.ConnectDB()
+
 	http.HandleFunc("/", PageHome)
 	log.Println("Сервер запущен на http://localhost:80")
 	err := http.ListenAndServe(":80", nil)
