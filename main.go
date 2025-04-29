@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/joho/godotenv"
 	"log"
 	"main/db"
 	"net/http"
@@ -17,11 +18,17 @@ type Response struct {
 }
 
 func main() {
+	// Загрузка .env файла
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	db.ConnectDB()
 
 	http.HandleFunc("/", PageHome)
 	log.Println("Сервер запущен на http://localhost:80")
-	err := http.ListenAndServe(":80", nil)
+	err = http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal("Ошибка сервера: ", err)
 	}

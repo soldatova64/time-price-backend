@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"
-	"main/models"
 	"os"
+	"time"
 )
 
 type Dbinstance struct {
@@ -17,29 +17,42 @@ type Dbinstance struct {
 var DB Dbinstance
 
 func ConnectDB() {
+	// Получаем хост из переменных окружения или используем localhost по умолчанию
+	host := os.Getenv("DB_HOST")
+	if host == "" {
+		host = "localhost"
+		log.Println("DB_HOST not set, using default 'localhost'")
+	}
+
 	dsn := fmt.Sprintf(
-		"host=db user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Moscow",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
+		"host=localhost user=anna dbname=anna password=mysecretpassword port=5432 sslmode=disable",
+	)
+
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold: time.Second,
+			LogLevel:      logger.Info,
+			Colorful:      true,
+		},
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: newLogger,
 	})
 
 	if err != nil {
-		log.Fatal("Failed to connect to database.\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to connect to database. Ensure PostgreSQL is running and check your connection settings.\nError details: %v", err)
 	}
 
-	log.Println("connected")
-	db.Logger = logger.Default.LogMode(logger.Info)
-
-	log.Println("running migration")
-	db.AutoMigrate(&models.Task{})
-
-	DB = Dbinstance{
-		Db: db,
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed to get database instance: %v", err)
 	}
+
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	log.Println("Successfully connected to PostgreSQL database")
 }

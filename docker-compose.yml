@@ -2,6 +2,8 @@ services:
   server:
     image: soldatova64/time-price-backend:latest
     build: .
+    depends_on:
+      - db
     ports:
       - "80:80"
     restart: unless-stopped
