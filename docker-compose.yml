@@ -13,7 +13,7 @@ services:
       - ./:/app
     command: go run main.go
   db:
-    image: postgres:alpine
+    image: postgres:17.4-alpine3.21
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}

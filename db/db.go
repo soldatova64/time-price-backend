@@ -24,8 +24,18 @@ func ConnectDB() {
 		log.Println("DB_HOST not set, using default 'localhost'")
 	}
 
+	user := os.Getenv("DB_USER")
+	dbname := os.Getenv("DB_NAME")
+	password := os.Getenv("DB_PASSWORD")
+	port := os.Getenv("DB_PORT")
+
 	dsn := fmt.Sprintf(
-		"host=localhost user=anna dbname=anna password=mysecretpassword port=5432 sslmode=disable",
+		"host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",
+		host,
+		user,
+		dbname,
+		password,
+		port,
 	)
 
 	newLogger := logger.New(
