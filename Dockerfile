@@ -5,3 +5,11 @@ RUN go mod download
 COPY . .
 CMD ["golang"]
 EXPOSE 80
+
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /soldatova64 /app/
+COPY web ./web/
+COPY .env .
+EXPOSE 80
+CMD ["./soldatova64"]
