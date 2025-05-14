@@ -1,21 +1,13 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"log"
 	"main/db"
+	"main/handlers"
 	"net/http"
 )
-
-type Meta struct {
-	Action string `json:"action"`
-}
-
-type Response struct {
-	Meta Meta                   `json:"meta"`
-	Data map[string]interface{} `json:"data"`
-}
 
 func main() {
 	// Загрузка .env файла
@@ -26,23 +18,17 @@ func main() {
 
 	db.ConnectDB()
 
-	http.HandleFunc("/", PageHome)
+	r := chi.NewRouter()
+
+	r.Get("/", handlers.PageHome)
+	r.Get("/things", handlers.GetThing)
+	r.Post("/things", handlers.PostThing)
+	r.Get("/things/{id}", handlers.GetThingByID)
+	r.Delete("/things/{id}", handlers.DeleteThing)
+
 	log.Println("Сервер запущен на http://localhost:80")
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal("Ошибка сервера: ", err)
-	}
-}
-
-func PageHome(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-Type", "application/json")
-
-	response := Response{
-		Meta: Meta{Action: "home"},
-		Data: make(map[string]interface{}),
-	}
-
-	if err := json.NewEncoder(writer).Encode(response); err != nil {
-		http.Error(writer, "Ошибка формирования JSON", http.StatusInternalServerError)
 	}
 }
