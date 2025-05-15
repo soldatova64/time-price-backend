@@ -1,68 +1,60 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/lib/pq"
 	"log"
 	"os"
-	"time"
 )
 
-type Dbinstance struct {
-	Db *gorm.DB
-}
-
-var DB Dbinstance
-
-func ConnectDB() {
-	// Получаем хост из переменных окружения или используем localhost по умолчанию
+func ConnectDB() (db *sql.DB) {
 	host := os.Getenv("DB_HOST")
 	if host == "" {
 		host = "localhost"
-		log.Println("DB_HOST not set, using default 'localhost'")
+		log.Println("DB: DB_HOST not set, using default 'localhost'.")
 	}
 
 	user := os.Getenv("DB_USER")
 	dbname := os.Getenv("DB_NAME")
-	password := os.Getenv("DB_PASSWORD")
+	pass := os.Getenv("DB_PASSWORD")
 	port := os.Getenv("DB_PORT")
 
-	dsn := fmt.Sprintf(
-		"host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",
-		host,
-		user,
-		dbname,
-		password,
-		port,
-	)
+	log.Println("DB: Migrate begin.")
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, port, dbname)
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags),
-		logger.Config{
-			SlowThreshold: time.Second,
-			LogLevel:      logger.Info,
-			Colorful:      true,
-		},
-	)
-
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-	})
-
+	m, err := migrate.New("file://migrations", dsn)
 	if err != nil {
-		log.Fatalf("Failed to connect to database. Ensure PostgreSQL is running and check your connection settings.\nError details: %v", err)
+		log.Fatal(err)
 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Fatalf("Failed to get database instance: %v", err)
+	err = m.Up()
+
+	if err != nil && err != migrate.ErrNoChange {
+		log.Fatal(err)
 	}
 
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+	if err == migrate.ErrNoChange {
+		log.Println("DB: Migrate no change.")
+	}
 
-	log.Println("Successfully connected to PostgreSQL database")
+	log.Println("DB: Migrate done.")
+
+	log.Println(fmt.Sprintf("DB: Connection to %s:%s/%s", host, port, dbname))
+
+	dsn = fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable", host, user, dbname, pass, port)
+
+	db, err = sql.Open("postgres", dsn)
+
+	if err != nil {
+		log.Fatal("DB: Failed to connect to database.\n", err)
+		os.Exit(1)
+	}
+
+	log.Println("DB: Connected.")
+
+	return db
 }
