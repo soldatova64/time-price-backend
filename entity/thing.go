@@ -2,6 +2,7 @@ package entity
 
 import (
 	"main/types"
+	"time"
 )
 
 type Thing struct {
@@ -12,4 +13,6 @@ type Thing struct {
 	SaleDate  types.NullString `json:"sale_date"`
 	SalePrice types.NullInt64  `json:"sale_price"`
 	CreatedAt string           `json:"-"`
+	Deleted   bool             `json:"-"`
+	DeletedAt *time.Time       `json:"-"`
 }

@@ -12,6 +12,7 @@ func main() {
 	// Загрузка .env файла
 	err := godotenv.Load(".env")
 	if err != nil {
+
 		log.Fatal("Main: Ошибка загрузки .env файла.")
 	}
 
@@ -19,6 +20,7 @@ func main() {
 	app := controllers.NewApp(db)
 
 	http.HandleFunc("/", app.HomeController)
+	http.HandleFunc("/thing/", app.DeleteController)
 
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
