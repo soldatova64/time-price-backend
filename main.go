@@ -12,7 +12,6 @@ func main() {
 	// Загрузка .env файла
 	err := godotenv.Load(".env")
 	if err != nil {
-
 		log.Fatal("Main: Ошибка загрузки .env файла.")
 	}
 
