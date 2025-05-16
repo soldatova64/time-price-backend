@@ -1,10 +1,9 @@
 ALTER TABLE thing
-    ADD COLUMN deleted BOOLEAN NOT null default false;
+    ADD COLUMN is_deleted BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE thing
     ADD COLUMN deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
 
-CREATE INDEX idx_thing_deleted ON thing(deleted);
-CREATE INDEX idx_thing_deleted_at ON thing(deleted_at);
+CREATE INDEX idx_thing_deleted ON thing(is_deleted);
 
 
 
