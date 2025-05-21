@@ -5,6 +5,7 @@ import (
 	"main/models"
 	"main/models/responses"
 	"main/repositories"
+	"math"
 	"net/http"
 	"time"
 )
@@ -25,7 +26,8 @@ func (app *App) HomeController(writer http.ResponseWriter, request *http.Request
 
 	for key := range collection {
 		collection[key].Days = int(dayNow.Sub(collection[key].PayDate).Hours()/24) + 1
-		collection[key].PayDay = float64(collection[key].PayPrice / collection[key].Days)
+		collection[key].PayDay = float64(collection[key].PayPrice) / float64(collection[key].Days)
+		collection[key].PayDay = math.Round(collection[key].PayDay)
 	}
 
 	response := responses.HomeResponse{
