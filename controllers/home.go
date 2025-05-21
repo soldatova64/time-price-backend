@@ -6,6 +6,7 @@ import (
 	"main/models/responses"
 	"main/repositories"
 	"net/http"
+	"time"
 )
 
 func (app *App) HomeController(writer http.ResponseWriter, request *http.Request) {
@@ -17,6 +18,14 @@ func (app *App) HomeController(writer http.ResponseWriter, request *http.Request
 		http.Error(writer, "Ошибка базы данных.", http.StatusInternalServerError)
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	dayNow := time.Now()
+	dayNow = time.Date(dayNow.Year(), dayNow.Month(), dayNow.Day(), 0, 0, 0, 0, time.UTC)
+
+	for key := range collection {
+		collection[key].Days = int(dayNow.Sub(collection[key].PayDate).Hours()/24) + 1
+		collection[key].PayDay = float64(collection[key].PayPrice / collection[key].Days)
 	}
 
 	response := responses.HomeResponse{
