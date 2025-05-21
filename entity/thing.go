@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"database/sql"
 	"main/types"
 )
 
@@ -12,4 +13,6 @@ type Thing struct {
 	SaleDate  types.NullString `json:"sale_date"`
 	SalePrice types.NullInt64  `json:"sale_price"`
 	CreatedAt string           `json:"-"`
+	Deleted   bool             `json:"-"`
+	DeletedAt sql.NullTime     `json:"-"`
 }
