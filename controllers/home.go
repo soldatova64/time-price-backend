@@ -5,6 +5,7 @@ import (
 	"main/models"
 	"main/models/responses"
 	"main/repositories"
+	"math"
 	"net/http"
 	"time"
 )
@@ -24,8 +25,25 @@ func (app *App) HomeController(writer http.ResponseWriter, request *http.Request
 	dayNow = time.Date(dayNow.Year(), dayNow.Month(), dayNow.Day(), 0, 0, 0, 0, time.UTC)
 
 	for key := range collection {
-		collection[key].Days = int(dayNow.Sub(collection[key].PayDate).Hours()/24) + 1
-		collection[key].PayDay = float64(collection[key].PayPrice / collection[key].Days)
+		var endDate time.Time
+
+		if collection[key].SaleDate.Valid {
+			endDate = collection[key].SaleDate.Time
+		} else {
+			endDate = dayNow
+		}
+
+		collection[key].Days = int(endDate.Sub(collection[key].PayDate).Hours()/24) + 1
+
+		var prise int
+		if collection[key].SalePrice.Valid {
+			prise = collection[key].PayPrice - int(collection[key].SalePrice.Int64)
+		} else {
+			prise = collection[key].PayPrice
+		}
+
+		collection[key].PayDay = float64(prise) / float64(collection[key].Days)
+		collection[key].PayDay = math.Round(collection[key].PayDay)
 	}
 
 	response := responses.HomeResponse{
