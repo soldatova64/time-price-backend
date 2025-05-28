@@ -2,6 +2,7 @@ package thing
 
 import (
 	"database/sql"
+	"log"
 	"main/entity"
 )
 
@@ -40,4 +41,37 @@ func (r *Repository) FindAll() ([]entity.Thing, error) {
 	}
 
 	return things, nil
+}
+
+func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error) {
+
+	var saleDate interface{}
+	if thing.SaleDate.Valid {
+		saleDate = thing.SaleDate.Time
+	} else {
+		saleDate = nil
+	}
+
+	var salePrice interface{}
+	if thing.SalePrice.Valid {
+		salePrice = thing.SalePrice.Int64
+	} else {
+		salePrice = nil
+	}
+
+	query := `INSERT INTO thing(name, pay_date, pay_price, sale_date, sale_price) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	err := db.QueryRow(
+		query,
+		thing.Name,
+		thing.PayDate,
+		thing.PayPrice,
+		saleDate,
+		salePrice,
+	).Scan(&thing.ID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return thing, nil
 }

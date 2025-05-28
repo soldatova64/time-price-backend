@@ -1,0 +1,69 @@
+POST http://localhost/admin/thing
+
+{
+    "name": "вещь1",
+    "pay_date": "2025-01-01T00:00:00+03:00",
+    "pay_price": 1000,
+    "sale_date": "2025-01-02T00:00:00+03:00",
+    "sale_price": 900
+}
+
+###
+
+POST http://localhost/admin/thing
+
+{
+    "name": "вещь2",
+    "pay_date": "2025-01-01T00:00:00Z",
+    "pay_price": 1000,
+    "sale_date": "2025-01-02T00:00:00Z",
+    "sale_price": 900
+}
+
+###
+
+POST http://localhost/admin/thing
+
+{
+    "name": "вещь3",
+    "pay_date": "2025-01-01T00:00:00Z",
+    "pay_price": 0,
+    "sale_date": "2025-01-02T00:00:00Z",
+    "sale_price": 900
+}
+
+###
+
+POST http://localhost/admin/thing
+
+{
+    "name": "вещь4",
+    "pay_date": "2026-01-01T00:00:00Z",
+    "pay_price": 3333,
+    "sale_date": "2025-01-02T00:00:00Z",
+    "sale_price": 900
+}
+
+###
+
+POST http://localhost/admin/thing
+
+{
+    "name": "вещь5",
+    "pay_date": "2024-01-01T00:00:00Z",
+    "pay_price": 3333,
+    "sale_date": null,
+    "sale_price": 999
+}
+
+###
+
+POST http://localhost/admin/thing
+
+{
+    "name": "вещь6",
+    "pay_date": "2024-01-01T00:00:00Z",
+    "pay_price": 3333,
+    "sale_date": "2025-01-02T00:00:00Z",
+    "sale_price": null
+}

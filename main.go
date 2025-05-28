@@ -19,6 +19,7 @@ func main() {
 	app := controllers.NewApp(db)
 
 	http.HandleFunc("/", app.HomeController)
+	http.HandleFunc("/admin/thing", app.AdminThingController)
 
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
