@@ -18,4 +18,5 @@ type Thing struct {
 	CreatedAt string          `json:"-"`
 	Deleted   bool            `json:"-"`
 	DeletedAt sql.NullTime    `json:"-"`
+	Expense   []Expense       `json:"expense"`
 }

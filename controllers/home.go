@@ -34,70 +34,41 @@ func (app *App) HomeController(writer http.ResponseWriter, request *http.Request
 		expensesByThingID[e.ThingID] = append(expensesByThingID[e.ThingID], e)
 	}
 
-	type ThingResponse struct {
-		entity.Thing
-		Expenses []entity.Expense `json:"expenses"`
-	}
-
-	var responseThings []ThingResponse
-
 	dayNow := time.Now()
 	dayNow = time.Date(dayNow.Year(), dayNow.Month(), dayNow.Day(), 0, 0, 0, 0, time.UTC)
 
-	for _, key := range things {
-		thingExpenses := expensesByThingID[key.ID]
+	for i := range things {
+		thingExpenses := expensesByThingID[things[i].ID]
 		if thingExpenses == nil {
 			thingExpenses = []entity.Expense{}
 		}
 
 		var endDate time.Time
 
-		if key.SaleDate.Valid {
-			endDate = key.SaleDate.Time
+		if things[i].SaleDate.Valid {
+			endDate = things[i].SaleDate.Time
 		} else {
 			endDate = dayNow
 		}
+		things[i].Days = int(endDate.Sub(things[i].PayDate).Hours()/24) + 1
 
-		key.Days = int(endDate.Sub(key.PayDate).Hours()/24) + 1
-
-		var prise int
-		if key.SalePrice.Valid {
-			prise = key.PayPrice - int(key.SalePrice.Int64)
-		} else {
-			prise = key.PayPrice
+		price := things[i].PayPrice
+		if things[i].SalePrice.Valid {
+			price -= int(things[i].SalePrice.Int64)
 		}
 
 		for _, expense := range thingExpenses {
-			prise += expense.Sum
+			price += expense.Sum
 		}
 
-		key.PayDay = float64(prise) / float64(key.Days)
-		key.PayDay = math.Round(key.PayDay)
+		things[i].PayDay = math.Round(float64(price) / float64(things[i].Days))
+		things[i].Expense = thingExpenses
 
-		thingCopy := entity.Thing{
-			ID:        key.ID,
-			Name:      key.Name,
-			PayDate:   key.PayDate,
-			PayPrice:  key.PayPrice,
-			SaleDate:  key.SaleDate,
-			SalePrice: key.SalePrice,
-			Days:      key.Days,
-			PayDay:    key.PayDay,
-		}
-
-		responseThings = append(responseThings, ThingResponse{
-			Thing:    thingCopy,
-			Expenses: thingExpenses,
-		})
 	}
 
 	response := responses.HomeResponse{
 		Meta: models.Meta{Action: "home"},
-		Data: struct {
-			Things []ThingResponse `json:"things"`
-		}{
-			Things: responseThings,
-		},
+		Data: things,
 	}
 	if err := json.NewEncoder(writer).Encode(response); err != nil {
 		http.Error(writer, "Ошибка формирования JSON.", http.StatusInternalServerError)
