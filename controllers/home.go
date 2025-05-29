@@ -37,32 +37,32 @@ func (app *App) HomeController(writer http.ResponseWriter, request *http.Request
 	dayNow := time.Now()
 	dayNow = time.Date(dayNow.Year(), dayNow.Month(), dayNow.Day(), 0, 0, 0, 0, time.UTC)
 
-	for i := range things {
-		thingExpenses := expensesByThingID[things[i].ID]
+	for key := range things {
+		thingExpenses := expensesByThingID[things[key].ID]
 		if thingExpenses == nil {
 			thingExpenses = []entity.Expense{}
 		}
 
 		var endDate time.Time
 
-		if things[i].SaleDate.Valid {
-			endDate = things[i].SaleDate.Time
+		if things[key].SaleDate.Valid {
+			endDate = things[key].SaleDate.Time
 		} else {
 			endDate = dayNow
 		}
-		things[i].Days = int(endDate.Sub(things[i].PayDate).Hours()/24) + 1
+		things[key].Days = int(endDate.Sub(things[key].PayDate).Hours()/24) + 1
 
-		price := things[i].PayPrice
-		if things[i].SalePrice.Valid {
-			price -= int(things[i].SalePrice.Int64)
+		price := things[key].PayPrice
+		if things[key].SalePrice.Valid {
+			price -= int(things[key].SalePrice.Int64)
 		}
 
 		for _, expense := range thingExpenses {
 			price += expense.Sum
 		}
 
-		things[i].PayDay = math.Round(float64(price) / float64(things[i].Days))
-		things[i].Expense = thingExpenses
+		things[key].PayDay = math.Round(float64(price) / float64(things[key].Days))
+		things[key].Expense = thingExpenses
 
 	}
 
