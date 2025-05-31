@@ -1,12 +1,20 @@
-package repositories
+package thing
 
 import (
 	"database/sql"
 	"main/entity"
 )
 
-func FindAll(db *sql.DB) ([]entity.Thing, error) {
-	rows, err := db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price FROM thing WHERE is_deleted = FALSE")
+type Repository struct {
+	db *sql.DB
+}
+
+func NewRepository(db *sql.DB) *Repository {
+	return &Repository{db: db}
+}
+
+func (r *Repository) FindAll() ([]entity.Thing, error) {
+	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price FROM thing WHERE is_deleted = FALSE")
 
 	if err != nil {
 		return nil, err

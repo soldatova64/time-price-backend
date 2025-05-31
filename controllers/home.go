@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
+	"main/entity"
 	"main/models"
 	"main/models/responses"
-	"main/repositories"
+	"main/repositories/expense"
+	"main/repositories/thing"
 	"math"
 	"net/http"
 	"time"
@@ -13,45 +15,63 @@ import (
 func (app *App) HomeController(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	collection, err := repositories.FindAll(app.db)
-
+	things, err := thing.NewRepository(app.db).FindAll()
 	if err != nil {
 		http.Error(writer, "Ошибка базы данных.", http.StatusInternalServerError)
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	expenses, err := expense.NewRepository(app.db).FindAll()
+	if err != nil {
+		http.Error(writer, "Ошибка базы данных.", http.StatusInternalServerError)
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	expensesByThingID := make(map[int][]entity.Expense)
+	for _, e := range expenses {
+		expensesByThingID[e.ThingID] = append(expensesByThingID[e.ThingID], e)
+	}
+
 	dayNow := time.Now()
 	dayNow = time.Date(dayNow.Year(), dayNow.Month(), dayNow.Day(), 0, 0, 0, 0, time.UTC)
 
-	for key := range collection {
+	for key := range things {
+		thingExpenses := expensesByThingID[things[key].ID]
+		if thingExpenses == nil {
+			thingExpenses = []entity.Expense{}
+		}
+
 		var endDate time.Time
 
-		if collection[key].SaleDate.Valid {
-			endDate = collection[key].SaleDate.Time
+		if things[key].SaleDate.Valid {
+			endDate = things[key].SaleDate.Time
 		} else {
 			endDate = dayNow
 		}
+		things[key].Days = int(endDate.Sub(things[key].PayDate).Hours()/24) + 1
 
-		collection[key].Days = int(endDate.Sub(collection[key].PayDate).Hours()/24) + 1
-
-		var prise int
-		if collection[key].SalePrice.Valid {
-			prise = collection[key].PayPrice - int(collection[key].SalePrice.Int64)
-		} else {
-			prise = collection[key].PayPrice
+		price := things[key].PayPrice
+		if things[key].SalePrice.Valid {
+			price -= int(things[key].SalePrice.Int64)
 		}
 
-		collection[key].PayDay = float64(prise) / float64(collection[key].Days)
-		collection[key].PayDay = math.Round(collection[key].PayDay)
+		for _, expense := range thingExpenses {
+			price += expense.Sum
+		}
+
+		things[key].PayDay = math.Round(float64(price) / float64(things[key].Days))
+		things[key].Expense = thingExpenses
+
 	}
 
 	response := responses.HomeResponse{
 		Meta: models.Meta{Action: "home"},
-		Data: collection,
+		Data: things,
 	}
-
 	if err := json.NewEncoder(writer).Encode(response); err != nil {
 		http.Error(writer, "Ошибка формирования JSON.", http.StatusInternalServerError)
 	}
+
 }
