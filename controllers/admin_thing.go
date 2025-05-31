@@ -13,6 +13,8 @@ import (
 
 func (app *App) AdminThingController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing"}
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
+
 	var thingEntity entity.Thing
 
 	if err := json.NewDecoder(request.Body).Decode(&thingEntity); err != nil {
