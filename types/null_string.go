@@ -15,3 +15,19 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(ns.String)
 }
+
+func (ns *NullString) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		ns.Valid = false
+		return nil
+	}
+
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	ns.String = s
+	ns.Valid = true
+	return nil
+}
