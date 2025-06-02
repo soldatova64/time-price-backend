@@ -13,7 +13,7 @@ func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 func (r *Repository) FindAll() ([]entity.Expense, error) {
-	rows, err := r.db.Query("SELECT id, thing_id, sum, description, created_at  FROM expense WHERE is_deleted = FALSE")
+	rows, err := r.db.Query("SELECT id, thing_id, sum, description, expense_date, created_at  FROM expense WHERE is_deleted = FALSE")
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func (r *Repository) FindAll() ([]entity.Expense, error) {
 
 	for rows.Next() {
 		var e entity.Expense
-		err = rows.Scan(&e.ID, &e.ThingID, &e.Sum, &e.Description, &e.CreatedAt)
+		err = rows.Scan(&e.ID, &e.ThingID, &e.Sum, &e.Description, &e.ExpenseDate, &e.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
