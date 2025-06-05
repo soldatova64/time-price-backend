@@ -15,9 +15,9 @@ POST http://localhost/admin/thing
 {
     "name": "вещь2",
     "pay_date": "2025-01-01T00:00:00Z",
-    "pay_price": 1000,
-    "sale_date": "2025-01-02T00:00:00Z",
-    "sale_price": 900
+    "pay_price": 2000,
+    "sale_date": "2025-05-05T00:00:00Z",
+    "sale_price": 1800
 }
 
 ###
