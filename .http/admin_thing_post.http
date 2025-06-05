@@ -67,3 +67,15 @@ POST http://localhost/admin/thing
     "sale_date": "2025-01-02T00:00:00Z",
     "sale_price": null
 }
+
+###
+
+POST http://localhost/admin/thing
+
+{
+    "name": "вещь7",
+    "pay_date": "2024-01-01T00:00:00Z",
+    "pay_price": 500000,
+    "sale_date": null,
+    "sale_price": null
+}
