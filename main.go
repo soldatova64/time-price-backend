@@ -20,6 +20,7 @@ func main() {
 
 	http.HandleFunc("/", app.HomeController)
 	http.HandleFunc("/admin/thing", app.AdminThingController)
+	http.HandleFunc("/admin/thing/{id}", app.AdminThingUpdateController)
 
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
