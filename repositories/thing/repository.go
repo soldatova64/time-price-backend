@@ -75,3 +75,39 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 
 	return thing, nil
 }
+
+func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, error) {
+	query := `UPDATE thing SET 
+		name = $1, 
+		pay_date = $2, 
+		pay_price = $3, 
+		sale_date = $4, 
+		sale_price = $5 
+	WHERE id = $6`
+
+	var saleDate interface{}
+	if thing.SaleDate.Valid {
+		saleDate = thing.SaleDate.Time
+	} else {
+		saleDate = nil
+	}
+
+	var salePrice interface{}
+	if thing.SalePrice.Valid {
+		salePrice = thing.SalePrice.Int64
+	} else {
+		salePrice = nil
+	}
+	_, err := r.db.Exec(query,
+		thing.Name,
+		thing.PayDate,
+		thing.PayPrice,
+		saleDate,
+		salePrice,
+		thing.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return thing, nil
+}
