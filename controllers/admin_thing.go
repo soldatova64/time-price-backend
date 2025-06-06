@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"log"
 	"main/entity"
 	"main/models"
@@ -9,13 +10,11 @@ import (
 	"main/repositories/thing"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
 func (app *App) AdminThingController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing"}
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
 
 	var thingEntity entity.Thing
 
@@ -102,12 +101,11 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 
 func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing_update"}
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
 
-	path := strings.TrimPrefix(request.URL.Path, "/admin/thing/")
-	idStr := strings.Split(path, "/")[0]
+	vars := mux.Vars(request)
+	idStr := vars["id"]
 	id, err := strconv.Atoi(idStr)
-	if err != nil {
+	if err != nil || id <= 0 {
 		errorResponse := responses.ErrorResponse{
 			Meta: meta,
 			Errors: []responses.Error{
