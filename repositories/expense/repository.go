@@ -33,3 +33,24 @@ func (r *Repository) FindAll() ([]entity.Expense, error) {
 	}
 	return expenses, nil
 }
+
+func (r *Repository) Add(expense *entity.Expense) (*entity.Expense, error) {
+	query := `INSERT INTO expense(thing_id, sum, description, expense_date) 
+	          VALUES ($1, $2, $3, $4) 
+	          RETURNING id`
+
+	err := r.db.QueryRow(
+		query,
+		expense.ThingID,
+		expense.Sum,
+		expense.Description,
+		expense.ExpenseDate,
+	).Scan(&expense.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return expense, nil
+
+}
