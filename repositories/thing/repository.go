@@ -2,8 +2,10 @@ package thing
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"main/entity"
+	"strings"
 )
 
 type Repository struct {
@@ -77,14 +79,39 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 }
 
 func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, error) {
-	query := `UPDATE thing SET 
-		name = $1, 
-		pay_date = $2, 
-		pay_price = $3, 
-		sale_date = $4, 
-		sale_price = $5 
-	WHERE id = $6`
+	query := "UPDATE thing SET "
+	params := []interface{}{}
+	paramCount := 1
 
+	if thing.Name != "" {
+		query += fmt.Sprintf("name = $%d, ", paramCount)
+		params = append(params, thing.Name)
+		paramCount++
+	}
+
+	if !thing.PayDate.IsZero() {
+		query += fmt.Sprintf("pay_date = $%d, ", paramCount)
+		params = append(params, thing.PayDate)
+		paramCount++
+	}
+
+	if thing.PayPrice > 0 {
+		query += fmt.Sprintf("pay_price = $%d, ", paramCount)
+		params = append(params, thing.PayPrice)
+		paramCount++
+	}
+
+	if thing.SaleDate.Valid {
+		query += fmt.Sprintf("sale_date = $%d, ", paramCount)
+		params = append(params, thing.SaleDate.Time)
+		paramCount++
+	}
+
+	if thing.SalePrice.Valid {
+		query += fmt.Sprintf("sale_price = $%d, ", paramCount)
+		params = append(params, thing.SalePrice.Int64)
+		paramCount++
+	}
 	var saleDate interface{}
 	if thing.SaleDate.Valid {
 		saleDate = thing.SaleDate.Time
@@ -98,6 +125,7 @@ func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, err
 	} else {
 		salePrice = nil
 	}
+
 	_, err := r.db.Exec(query,
 		thing.Name,
 		thing.PayDate,
@@ -105,6 +133,13 @@ func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, err
 		saleDate,
 		salePrice,
 		thing.ID)
+
+	query = strings.TrimSuffix(query, ", ")
+
+	query += fmt.Sprintf(" WHERE id = $%d", paramCount)
+	params = append(params, thing.ID)
+
+	_, err = r.db.Exec(query, params...)
 	if err != nil {
 		return nil, err
 	}
