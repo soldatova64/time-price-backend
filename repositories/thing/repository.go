@@ -2,10 +2,8 @@ package thing
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"main/entity"
-	"strings"
 )
 
 type Repository struct {
@@ -78,40 +76,43 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 	return thing, nil
 }
 
-func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, error) {
-	query := "UPDATE thing SET "
-	params := []interface{}{}
-	paramCount := 1
+func (r *Repository) Find(id int) (entity.Thing, error) {
+	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price FROM thing WHERE id = $1", id)
 
-	if thing.Name != "" {
-		query += fmt.Sprintf("name = $%d, ", paramCount)
-		params = append(params, thing.Name)
-		paramCount++
+	if err != nil {
+		log.Println(err)
+	}
+	defer rows.Close()
+	things := []entity.Thing{}
+
+	for rows.Next() {
+		var t entity.Thing
+
+		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice)
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		things = append(things, t)
 	}
 
-	if !thing.PayDate.IsZero() {
-		query += fmt.Sprintf("pay_date = $%d, ", paramCount)
-		params = append(params, thing.PayDate)
-		paramCount++
+	if err = rows.Err(); err != nil {
+		log.Println(err)
 	}
+	return things[0], nil
 
-	if thing.PayPrice > 0 {
-		query += fmt.Sprintf("pay_price = $%d, ", paramCount)
-		params = append(params, thing.PayPrice)
-		paramCount++
-	}
+}
 
-	if thing.SaleDate.Valid {
-		query += fmt.Sprintf("sale_date = $%d, ", paramCount)
-		params = append(params, thing.SaleDate.Time)
-		paramCount++
-	}
+func (r *Repository) Update(thing entity.Thing) (entity.Thing, error) {
+	query := `UPDATE thing SET 
+		name = $1, 
+		pay_date = $2, 
+		pay_price = $3, 
+		sale_date = $4, 
+		sale_price = $5 
+	WHERE id = $6`
 
-	if thing.SalePrice.Valid {
-		query += fmt.Sprintf("sale_price = $%d, ", paramCount)
-		params = append(params, thing.SalePrice.Int64)
-		paramCount++
-	}
 	var saleDate interface{}
 	if thing.SaleDate.Valid {
 		saleDate = thing.SaleDate.Time
@@ -133,15 +134,8 @@ func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, err
 		saleDate,
 		salePrice,
 		thing.ID)
-
-	query = strings.TrimSuffix(query, ", ")
-
-	query += fmt.Sprintf(" WHERE id = $%d", paramCount)
-	params = append(params, thing.ID)
-
-	_, err = r.db.Exec(query, params...)
 	if err != nil {
-		return nil, err
+		log.Println(err)
 	}
 
 	return thing, nil

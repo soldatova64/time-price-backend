@@ -1,17 +1,15 @@
 package controllers
 
 import (
-	"database/sql"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"log"
 	"main/entity"
 	"main/models"
 	"main/models/responses"
 	"main/repositories/thing"
-	"main/types"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -104,8 +102,8 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing_update"}
 
-	path := strings.TrimPrefix(request.URL.Path, "/admin/thing/")
-	idStr := strings.Split(path, "/")[0]
+	vars := mux.Vars(request)
+	idStr := vars["id"]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		errorResponse := responses.ErrorResponse{
@@ -122,8 +120,25 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		return
 	}
 
-	var updateData map[string]interface{}
-	if err := json.NewDecoder(request.Body).Decode(&updateData); err != nil {
+	thingRepo := thing.NewRepository(app.db)
+	thingEntity, err := thingRepo.Find(id)
+	if err != nil {
+		log.Printf("Database error: %v", err)
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "database",
+					Message: "Не удалось найти вещь в БД",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	if err := json.NewDecoder(request.Body).Decode(&thingEntity); err != nil {
 		errorResponse := responses.ErrorResponse{
 			Meta: meta,
 			Errors: []responses.Error{
@@ -138,96 +153,28 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		return
 	}
 
-	thingEntity := entity.Thing{ID: id}
-
-	if name, ok := updateData["name"].(string); ok {
-		thingEntity.Name = name
-	}
-
-	if payDateStr, ok := updateData["pay_date"].(string); ok {
-		payDate, err := time.Parse(time.RFC3339, payDateStr)
-		if err != nil {
-			errorResponse := responses.ErrorResponse{
-				Meta: meta,
-				Errors: []responses.Error{
-					{
-						Field:   "pay_date",
-						Message: "Неверный формат даты",
-					},
-				},
-			}
-			writer.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(writer).Encode(errorResponse)
-			return
-		}
-		thingEntity.PayDate = payDate
-	}
-
-	if payPrice, ok := updateData["pay_price"].(float64); ok {
-		thingEntity.PayPrice = int(payPrice)
-	}
-
-	if saleDate, ok := updateData["sale_date"]; ok {
-		if saleDate == nil {
-			thingEntity.SaleDate = types.NullTime{NullTime: sql.NullTime{Valid: false}}
-		} else {
-			parsedDate, err := time.Parse(time.RFC3339, saleDate.(string))
-			if err != nil {
-				errorResponse := responses.ErrorResponse{
-					Meta: meta,
-					Errors: []responses.Error{
-						{
-							Field:   "sale_date",
-							Message: "Неверный формат даты",
-						},
-					},
-				}
-				writer.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(writer).Encode(errorResponse)
-				return
-			}
-			thingEntity.SaleDate = types.NullTime{NullTime: sql.NullTime{
-				Time:  parsedDate,
-				Valid: true,
-			}}
-		}
-	}
-
-	if salePrice, ok := updateData["sale_price"]; ok {
-		if salePrice == nil {
-			thingEntity.SalePrice = types.NullInt64{NullInt64: sql.NullInt64{Valid: false}}
-		} else {
-			thingEntity.SalePrice = types.NullInt64{NullInt64: sql.NullInt64{
-				Int64: int64(salePrice.(float64)),
-				Valid: true,
-			}}
-		}
-	}
-
 	var errors []responses.Error
 
-	if val, ok := updateData["name"]; ok && val == "" {
+	if thingEntity.Name == "" {
 		errors = append(errors, responses.Error{
 			Field:   "name",
-			Message: "Имя не может быть пустым",
+			Message: "Поле должно быть заполнено",
 		})
 	}
 
-	if _, ok := updateData["pay_date"]; ok {
-		if thingEntity.PayDate.IsZero() {
-			errors = append(errors, responses.Error{
-				Field:   "pay_date",
-				Message: "Неверный формат даты",
-			})
-		} else if thingEntity.PayDate.After(time.Now()) {
-			errors = append(errors, responses.Error{
-				Field:   "pay_date",
-				Message: "Дата не может быть в будущем",
-			})
-		}
+	if thingEntity.PayDate.IsZero() {
+		errors = append(errors, responses.Error{
+			Field:   "pay_date",
+			Message: "Необходимо указать дату покупки",
+		})
+	} else if thingEntity.PayDate.After(time.Now()) {
+		errors = append(errors, responses.Error{
+			Field:   "pay_date",
+			Message: "Дата не может быть в будущем",
+		})
 	}
 
-	if val, ok := updateData["pay_price"]; ok && val.(float64) <= 0 {
+	if thingEntity.PayPrice <= 0 {
 		errors = append(errors, responses.Error{
 			Field:   "pay_price",
 			Message: "Стоимость покупки должна быть положительной",
@@ -244,8 +191,7 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		return
 	}
 
-	thingRepo := thing.NewRepository(app.db)
-	updatedThing, err := thingRepo.Update(app.db, &thingEntity)
+	updatedThing, err := thingRepo.Update(thingEntity)
 	if err != nil {
 		log.Printf("Database error: %v", err)
 		errorResponse := responses.ErrorResponse{
@@ -264,7 +210,7 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 
 	successResponse := responses.AdminThingResponse{
 		Meta: meta,
-		Data: *updatedThing,
+		Data: updatedThing,
 	}
 	writer.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(writer).Encode(successResponse); err != nil {
