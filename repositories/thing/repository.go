@@ -83,7 +83,7 @@ func (r *Repository) Find(id int) (entity.Thing, error) {
 		log.Println(err)
 	}
 	defer rows.Close()
-	things := []entity.Thing{}
+	thing := entity.Thing{}
 
 	for rows.Next() {
 		var t entity.Thing
@@ -94,13 +94,13 @@ func (r *Repository) Find(id int) (entity.Thing, error) {
 			log.Println(err)
 		}
 
-		things = append(things, t)
+		thing = t
 	}
 
 	if err = rows.Err(); err != nil {
 		log.Println(err)
 	}
-	return things[0], nil
+	return thing, nil
 
 }
 
