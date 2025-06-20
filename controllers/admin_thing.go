@@ -105,7 +105,7 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 	vars := mux.Vars(request)
 	idStr := vars["id"]
 	id, err := strconv.Atoi(idStr)
-	if err != nil || id <= 0 {
+	if err != nil {
 		errorResponse := responses.ErrorResponse{
 			Meta: meta,
 			Errors: []responses.Error{
@@ -120,7 +120,24 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		return
 	}
 
-	var thingEntity entity.Thing
+	thingRepo := thing.NewRepository(app.db)
+	thingEntity, err := thingRepo.Find(id)
+	if err != nil {
+		log.Printf("Database error: %v", err)
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "database",
+					Message: "Не удалось найти вещь в БД",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
 	if err := json.NewDecoder(request.Body).Decode(&thingEntity); err != nil {
 		errorResponse := responses.ErrorResponse{
 			Meta: meta,
@@ -135,14 +152,16 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		json.NewEncoder(writer).Encode(errorResponse)
 		return
 	}
-	thingEntity.ID = id
+
 	var errors []responses.Error
+
 	if thingEntity.Name == "" {
 		errors = append(errors, responses.Error{
 			Field:   "name",
 			Message: "Поле должно быть заполнено",
 		})
 	}
+
 	if thingEntity.PayDate.IsZero() {
 		errors = append(errors, responses.Error{
 			Field:   "pay_date",
@@ -154,12 +173,14 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 			Message: "Дата не может быть в будущем",
 		})
 	}
+
 	if thingEntity.PayPrice <= 0 {
 		errors = append(errors, responses.Error{
 			Field:   "pay_price",
 			Message: "Стоимость покупки должна быть положительной",
 		})
 	}
+
 	if len(errors) > 0 {
 		errorResponse := responses.ErrorResponse{
 			Meta:   meta,
@@ -170,8 +191,7 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		return
 	}
 
-	thingRepo := thing.NewRepository(app.db)
-	updatedThing, err := thingRepo.Update(app.db, &thingEntity)
+	updatedThing, err := thingRepo.Update(thingEntity)
 	if err != nil {
 		log.Printf("Database error: %v", err)
 		errorResponse := responses.ErrorResponse{
@@ -187,11 +207,12 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		json.NewEncoder(writer).Encode(errorResponse)
 		return
 	}
+
 	successResponse := responses.AdminThingResponse{
 		Meta: meta,
-		Data: *updatedThing,
+		Data: updatedThing,
 	}
-	writer.WriteHeader(http.StatusCreated)
+	writer.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(writer).Encode(successResponse); err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(writer, "Ошибка формирования JSON", http.StatusInternalServerError)

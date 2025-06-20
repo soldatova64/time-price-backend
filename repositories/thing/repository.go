@@ -76,7 +76,35 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 	return thing, nil
 }
 
-func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, error) {
+func (r *Repository) Find(id int) (entity.Thing, error) {
+	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price FROM thing WHERE id = $1", id)
+
+	if err != nil {
+		log.Println(err)
+	}
+	defer rows.Close()
+	thing := entity.Thing{}
+
+	for rows.Next() {
+		var t entity.Thing
+
+		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice)
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		thing = t
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Println(err)
+	}
+	return thing, nil
+
+}
+
+func (r *Repository) Update(thing entity.Thing) (entity.Thing, error) {
 	query := `UPDATE thing SET 
 		name = $1, 
 		pay_date = $2, 
@@ -98,6 +126,7 @@ func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, err
 	} else {
 		salePrice = nil
 	}
+
 	_, err := r.db.Exec(query,
 		thing.Name,
 		thing.PayDate,
@@ -106,7 +135,7 @@ func (r *Repository) Update(db *sql.DB, thing *entity.Thing) (*entity.Thing, err
 		salePrice,
 		thing.ID)
 	if err != nil {
-		return nil, err
+		log.Println(err)
 	}
 
 	return thing, nil
