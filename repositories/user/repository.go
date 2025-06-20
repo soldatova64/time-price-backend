@@ -31,3 +31,21 @@ func (r *Repository) FindAll() ([]entity.User, error) {
 	}
 	return users, nil
 }
+
+func (r *Repository) FindByUsernameAndPassword(username, password string) (*entity.User, error) {
+	query := `SELECT id, username FROM users 
+              WHERE username = $1 AND password = $2 AND is_deleted = FALSE`
+	row := r.db.QueryRow(query, username, password)
+
+	var user entity.User
+	err := row.Scan(&user.ID, &user.Username)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
