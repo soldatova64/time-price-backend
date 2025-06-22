@@ -1,6 +1,6 @@
 CREATE TABLE auth_tokens
 (
-    "id"         SERIAL,
+    "id"         BIGSERIAL,
     "user_id"    INTEGER     NOT NULL,
     "token"      VARCHAR(32) NOT NULL UNIQUE,
     "created_at" TIMESTAMP   NOT NULL DEFAULT NOW(),
@@ -8,5 +8,3 @@ CREATE TABLE auth_tokens
     PRIMARY KEY ("id"),
     FOREIGN KEY ("user_id") REFERENCES "users"("id")
 );
-
-CREATE INDEX idx_auth_tokens_token ON auth_tokens(token);

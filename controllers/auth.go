@@ -2,39 +2,24 @@ package controllers
 
 import (
 	"crypto/rand"
-	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"log"
+	"main/entity"
+	"main/models/request"
+	"main/models/responses"
 	"main/repositories/auth_token"
 	"main/repositories/user"
 	"net/http"
 )
 
-type AuthController struct {
-	db *sql.DB
-}
-
-func NewAuthController(db *sql.DB) *AuthController {
-	return &AuthController{db: db}
-}
-
-type AuthRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type AuthResponse struct {
-	Token string `json:"token"`
-}
-
-func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
+func (c *App) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var authRequest AuthRequest
+	var authRequest request.AuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&authRequest); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -66,15 +51,21 @@ func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tokenDurationHours := 24
-	authResponse := auth_token.NewRepository(c.db)
-	_, err = authResponse.FindAll(1, token, tokenDurationHours)
+	authTokenRepo := auth_token.NewRepository(c.db)
+
+	authToken := &entity.AuthToken{
+		UserID: user.ID,
+		Token:  token,
+	}
+
+	_, err = authTokenRepo.AddToken(authToken, tokenDurationHours)
 	if err != nil {
-		log.Println("Ошибка сохранения токена", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("Token storage error:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	response := AuthResponse{
+	response := responses.AuthResponse{
 		Token: token,
 	}
 	w.Header().Set("Content-Type", "application/json")
