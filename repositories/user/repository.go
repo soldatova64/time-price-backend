@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"errors"
 	"main/entity"
 )
 
@@ -48,4 +49,21 @@ func (r *Repository) FindByUsernameAndPassword(username, password string) (*enti
 	}
 
 	return &user, nil
+}
+
+func (r *Repository) Add(user *entity.User) (*entity.User, error) {
+	if user.Username == "" || user.Email == "" || user.Password == "" {
+		return nil, errors.New("all fields are required")
+	}
+
+	query := `INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id`
+	row := r.db.QueryRow(query, user.Username, user.Email, user.Password)
+
+	var id int
+	err := row.Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+	user.ID = id
+	return user, nil
 }

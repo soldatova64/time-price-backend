@@ -26,6 +26,7 @@ func main() {
 	router.HandleFunc("/admin/thing/{id:[0-9]+}", app.AdminThingUpdateController).Methods("PUT")
 	router.HandleFunc("/admin/expense", app.AdminExpenseController).Methods("POST")
 	router.HandleFunc("/auth", app.AuthHandler).Methods("POST")
+	router.HandleFunc("/admin/user", app.AdminUserController).Methods("POST")
 
 	err = http.ListenAndServe(":80", router)
 	if err != nil {
