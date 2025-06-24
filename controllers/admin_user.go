@@ -14,9 +14,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var validate = validator.New()
-
 func init() {
+	var validate = validator.New()
 	validate.RegisterValidation("email", func(fl validator.FieldLevel) bool {
 		email := fl.Field().String()
 		if len(email) < 5 || !strings.Contains(email, "@") || !strings.Contains(email, ".") {
@@ -69,6 +68,7 @@ func (app *App) AdminUserController(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
+	var validate = validator.New()
 	if err := validate.Struct(req); err != nil {
 		errors := parseValidationErrors(err)
 		writer.WriteHeader(http.StatusBadRequest)
