@@ -2,8 +2,8 @@ POST http://localhost/auth
 Content-Type: application/json
 
 {
-  "username": "anna",
-  "password": "123"
+  "username": "testuser",
+  "password": "hashed_qwerty123ffg"
 }
 
 ###
@@ -14,3 +14,6 @@ Content-Type: application/json
   "username": "",
   "password": ""
 }
+
+###
+OPTIONS http://localhost/auth
