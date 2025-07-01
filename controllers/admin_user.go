@@ -2,37 +2,16 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/go-playground/validator/v10"
 	"log"
 	"main/entity"
+	"main/helpers"
 	"main/models"
 	"main/models/requests"
 	"main/models/responses"
 	"main/repositories/user"
 	"net/http"
-	"strings"
-
-	"github.com/go-playground/validator/v10"
 )
-
-func init() {
-	var validate = validator.New()
-	validate.RegisterValidation("email", func(fl validator.FieldLevel) bool {
-		email := fl.Field().String()
-		if len(email) < 5 || !strings.Contains(email, "@") || !strings.Contains(email, ".") {
-			return false
-		}
-		if email[0] == '@' || email[len(email)-1] == '@' {
-			return false
-		}
-
-		parts := strings.Split(email, ".")
-		if len(parts) < 2 || len(parts[len(parts)-1]) < 2 {
-			return false
-		}
-
-		return true
-	})
-}
 
 func (app *App) AdminUserController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_user"}
@@ -68,11 +47,30 @@ func (app *App) AdminUserController(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	var validate = validator.New()
+	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
 		errors := parseValidationErrors(err)
+		errorResponse := responses.ErrorResponse{
+			Meta:   meta,
+			Errors: errors,
+		}
 		writer.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(writer).Encode(errors)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	if !helpers.SimpleEmailValidation(req.Email) {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "email",
+					Message: "Некорректный формат email",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(writer).Encode(errorResponse)
 		return
 	}
 
