@@ -1,0 +1,48 @@
+POST http://localhost/admin/user
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "qwerty123ffg"
+}
+
+###
+POST http://localhost/admin/user
+Content-Type: application/json
+
+{
+  "username": "",
+  "email": "",
+  "password": ""
+}
+
+###
+POST http://localhost/admin/user
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "biektrnb",
+  "password": "qwerty123"
+}
+
+###
+POST http://localhost/admin/user
+Content-Type: application/json
+
+{
+  "username": "",
+  "email": "test@example.com",
+  "password": "qwerty123"
+}
+
+###
+POST http://localhost/admin/user
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": ""
+}
