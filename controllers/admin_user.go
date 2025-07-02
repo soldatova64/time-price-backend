@@ -74,7 +74,7 @@ func (app *App) AdminUserController(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	passwordHash := hashPassword(req.Password)
+	passwordHash := helpers.HashPassword(req.Password)
 
 	userRepo := user.NewRepository(app.db)
 	newUser := &entity.User{
@@ -153,8 +153,4 @@ func parseValidationErrors(err error) []responses.Error {
 	}
 
 	return errors
-}
-
-func hashPassword(password string) string {
-	return "hashed_" + password
 }
