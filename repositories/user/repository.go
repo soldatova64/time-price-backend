@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"main/entity"
+	"main/helpers"
 )
 
 type Repository struct {
@@ -34,9 +35,11 @@ func (r *Repository) FindAll() ([]entity.User, error) {
 }
 
 func (r *Repository) FindByUsernameAndPassword(username, password string) (*entity.User, error) {
+	hashedPassword := helpers.HashPassword(password)
+
 	query := `SELECT id, username FROM users 
               WHERE username = $1 AND password = $2 AND is_deleted = FALSE`
-	row := r.db.QueryRow(query, username, password)
+	row := r.db.QueryRow(query, username, hashedPassword)
 
 	var user entity.User
 	err := row.Scan(&user.ID, &user.Username)
