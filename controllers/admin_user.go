@@ -49,7 +49,7 @@ func (app *App) AdminUserController(writer http.ResponseWriter, request *http.Re
 
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
-		errors := parseValidationErrors(err)
+		errors := helpers.ParseValidationErrors(err)
 		errorResponse := responses.ErrorResponse{
 			Meta:   meta,
 			Errors: errors,
@@ -122,35 +122,4 @@ func (app *App) AdminUserController(writer http.ResponseWriter, request *http.Re
 
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(response)
-}
-
-func parseValidationErrors(err error) []responses.Error {
-	var errors []responses.Error
-
-	for _, err := range err.(validator.ValidationErrors) {
-		field := err.Field()
-		var message string
-
-		switch err.Tag() {
-		case "required":
-			message = "Поле обязательно для заполнения"
-		case "min":
-			if field == "Username" {
-				message = "Имя пользователя должно содержать минимум 3 символа"
-			} else {
-				message = "Пароль должен содержать минимум 6 символов"
-			}
-		case "email":
-			message = "Некорректный формат email"
-		default:
-			message = "Недопустимое значение"
-		}
-
-		errors = append(errors, responses.Error{
-			Field:   field,
-			Message: message,
-		})
-	}
-
-	return errors
 }
