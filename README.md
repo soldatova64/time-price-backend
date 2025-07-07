@@ -10,7 +10,7 @@
 - Пометить "./.path" и "./.bin" как Excluded.
 
 ## Полезные команды
-- Команда docker compose up -d - запустет сервисы, описанные в docker-compose.yml   
+- Команда docker compose up -d - запускает сервисы, описанные в файле docker-compose.yml
 - Команда make build - соберет образ из данных, которые хранятся в файлах Dockerfile.
 - Команда make push - отправит образ в реестр, в частности помещает его в хранилище образов Docker registry.
 
