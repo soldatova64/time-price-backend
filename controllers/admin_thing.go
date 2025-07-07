@@ -2,29 +2,32 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"log"
 	"main/entity"
+	"main/helpers"
 	"main/models"
+	"main/models/requests"
 	"main/models/responses"
 	"main/repositories/thing"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func (app *App) AdminThingController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing"}
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
+	writer.Header().Set("Content-Type", "application/json")
 
-	var thingEntity entity.Thing
-
-	if err := json.NewDecoder(request.Body).Decode(&thingEntity); err != nil {
+	var req requests.ThingRequest
+	if err := json.NewDecoder(request.Body).Decode(&req); err != nil {
 		errorResponse := responses.ErrorResponse{
 			Meta: meta,
 			Errors: []responses.Error{
 				{
-					Field:   "json",
-					Message: "Недопустимый формат JSON",
+					Field:   "request",
+					Message: "Недопустимый формат запроса",
 				},
 			},
 		}
@@ -33,35 +36,9 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	var errors []responses.Error
-
-	if thingEntity.Name == "" {
-		errors = append(errors, responses.Error{
-			Field:   "name",
-			Message: "Поле должно быть заполнено",
-		})
-	}
-
-	if thingEntity.PayDate.IsZero() {
-		errors = append(errors, responses.Error{
-			Field:   "pay_date",
-			Message: "Необходимо указать дату покупки",
-		})
-	} else if thingEntity.PayDate.After(time.Now()) {
-		errors = append(errors, responses.Error{
-			Field:   "pay_date",
-			Message: "Дата не может быть в будущем",
-		})
-	}
-
-	if thingEntity.PayPrice <= 0 {
-		errors = append(errors, responses.Error{
-			Field:   "pay_price",
-			Message: "Стоимость покупки должна быть положительной",
-		})
-	}
-
-	if len(errors) > 0 {
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		errors := helpers.ParseValidationErrors(err)
 		errorResponse := responses.ErrorResponse{
 			Meta:   meta,
 			Errors: errors,
@@ -70,6 +47,45 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 		json.NewEncoder(writer).Encode(errorResponse)
 		return
 	}
+
+	if helpers.IsFutureDate(req.PayDate) {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "pay_date",
+					Message: "Дата не может быть в будущем",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	if req.SaleDate.Valid && helpers.IsFutureDate(req.SaleDate.Time) {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "sale_date",
+					Message: "Дата продажи не может быть в будущем",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	thingEntity := entity.Thing{
+		Name:      req.Name,
+		PayDate:   req.PayDate,
+		PayPrice:  req.PayPrice,
+		SaleDate:  req.SaleDate,
+		SalePrice: req.SalePrice,
+	}
+
 	thingRepo := thing.NewRepository(app.db)
 	createdThing, err := thingRepo.Add(app.db, &thingEntity)
 	if err != nil {
@@ -101,6 +117,8 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 
 func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing_update"}
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
+	writer.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(request)
 	idStr := vars["id"]
@@ -138,13 +156,14 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		return
 	}
 
-	if err := json.NewDecoder(request.Body).Decode(&thingEntity); err != nil {
+	var req requests.ThingRequest
+	if err := json.NewDecoder(request.Body).Decode(&req); err != nil {
 		errorResponse := responses.ErrorResponse{
 			Meta: meta,
 			Errors: []responses.Error{
 				{
-					Field:   "json",
-					Message: "Недопустимый формат JSON",
+					Field:   "request",
+					Message: "Недопустимый формат запроса",
 				},
 			},
 		}
@@ -153,35 +172,9 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		return
 	}
 
-	var errors []responses.Error
-
-	if thingEntity.Name == "" {
-		errors = append(errors, responses.Error{
-			Field:   "name",
-			Message: "Поле должно быть заполнено",
-		})
-	}
-
-	if thingEntity.PayDate.IsZero() {
-		errors = append(errors, responses.Error{
-			Field:   "pay_date",
-			Message: "Необходимо указать дату покупки",
-		})
-	} else if thingEntity.PayDate.After(time.Now()) {
-		errors = append(errors, responses.Error{
-			Field:   "pay_date",
-			Message: "Дата не может быть в будущем",
-		})
-	}
-
-	if thingEntity.PayPrice <= 0 {
-		errors = append(errors, responses.Error{
-			Field:   "pay_price",
-			Message: "Стоимость покупки должна быть положительной",
-		})
-	}
-
-	if len(errors) > 0 {
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		errors := helpers.ParseValidationErrors(err)
 		errorResponse := responses.ErrorResponse{
 			Meta:   meta,
 			Errors: errors,
@@ -190,6 +183,42 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 		json.NewEncoder(writer).Encode(errorResponse)
 		return
 	}
+
+	if helpers.IsFutureDate(req.PayDate) {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "pay_date",
+					Message: "Дата не может быть в будущем",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	if req.SaleDate.Valid && helpers.IsFutureDate(req.SaleDate.Time) {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "sale_date",
+					Message: "Дата продажи не может быть в будущем",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	thingEntity.Name = req.Name
+	thingEntity.PayDate = req.PayDate
+	thingEntity.PayPrice = req.PayPrice
+	thingEntity.SaleDate = req.SaleDate
+	thingEntity.SalePrice = req.SalePrice
 
 	updatedThing, err := thingRepo.Update(thingEntity)
 	if err != nil {
