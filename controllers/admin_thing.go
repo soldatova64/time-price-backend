@@ -10,6 +10,7 @@ import (
 	"main/models"
 	"main/models/requests"
 	"main/models/responses"
+	"main/repositories/auth_token"
 	"main/repositories/thing"
 	"net/http"
 	"strconv"
@@ -17,8 +18,23 @@ import (
 
 func (app *App) AdminThingController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing"}
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
-	writer.Header().Set("Content-Type", "application/json")
+
+	token := request.Header.Get("Authorization")
+	authToken, err := auth_token.NewRepository(app.db).FindByToken(token)
+	if err != nil || authToken.UserID == 0 {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "auth",
+					Message: "Необходима авторизация",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
 
 	var req requests.ThingRequest
 	if err := json.NewDecoder(request.Body).Decode(&req); err != nil {
@@ -86,6 +102,8 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 		SalePrice: req.SalePrice,
 	}
 
+	thingEntity.UserID = authToken.UserID
+
 	thingRepo := thing.NewRepository(app.db)
 	createdThing, err := thingRepo.Add(app.db, &thingEntity)
 	if err != nil {
@@ -117,8 +135,6 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 
 func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing_update"}
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
-	writer.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(request)
 	idStr := vars["id"]

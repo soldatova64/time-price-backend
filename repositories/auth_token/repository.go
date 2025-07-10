@@ -2,6 +2,9 @@ package auth_token
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
+	"log"
 	"main/entity"
 	"time"
 )
@@ -37,18 +40,29 @@ func (r *Repository) AddToken(authToken *entity.AuthToken, durationHours int) (*
 }
 
 func (r *Repository) FindByToken(token string) (entity.AuthToken, error) {
-	query := `SELECT * FROM auth_tokens WHERE token = $1`
+	if token == "" {
+		return entity.AuthToken{}, fmt.Errorf("пустой токен")
+	}
+
+	query := `SELECT id, user_id, token, created_at, end_date 
+              FROM auth_tokens WHERE token = $1`
+
 	var authToken entity.AuthToken
 	err := r.db.QueryRow(query, token).Scan(
 		&authToken.ID,
-		&authToken.CreatedAt,
+		&authToken.UserID,
 		&authToken.Token,
 		&authToken.CreatedAt,
 		&authToken.EndDate,
 	)
 
 	if err != nil {
-		return entity.AuthToken{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.AuthToken{}, nil
+		}
+		log.Printf("Ошибка при поиске токена: %v\nЗапрос: %s\nТокен: %s", err, query, token)
+		return entity.AuthToken{}, fmt.Errorf("ошибка базы данных: %w", err)
 	}
+
 	return authToken, nil
 }
