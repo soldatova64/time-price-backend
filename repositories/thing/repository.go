@@ -59,7 +59,7 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 		salePrice = nil
 	}
 
-	query := `INSERT INTO thing(name, pay_date, pay_price, sale_date, sale_price) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	query := `INSERT INTO thing(name, pay_date, pay_price, sale_date, sale_price, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 	err := db.QueryRow(
 		query,
 		thing.Name,
@@ -67,6 +67,7 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 		thing.PayPrice,
 		saleDate,
 		salePrice,
+		thing.UserID,
 	).Scan(&thing.ID)
 	if err != nil {
 		log.Println(err)
@@ -76,8 +77,8 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 	return thing, nil
 }
 
-func (r *Repository) Find(id int) (entity.Thing, error) {
-	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price FROM thing WHERE id = $1", id)
+func (r *Repository) Find(userID int) (entity.Thing, error) {
+	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thing WHERE is_deleted = FALSE AND user_id = $1", userID)
 
 	if err != nil {
 		log.Println(err)
@@ -139,4 +140,42 @@ func (r *Repository) Update(thing entity.Thing) (entity.Thing, error) {
 	}
 
 	return thing, nil
+}
+
+func (r *Repository) FindAllByUserID(userID int) ([]entity.Thing, error) {
+	rows, err := r.db.Query(
+		"SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thing WHERE is_deleted = FALSE AND user_id = $1",
+		userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	things := []entity.Thing{}
+
+	for rows.Next() {
+		var t entity.Thing
+		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice, &t.UserID)
+		if err != nil {
+			return nil, err
+		}
+		things = append(things, t)
+	}
+
+	return things, nil
+}
+
+func (r *Repository) FindByIDAndUserID(id, userID int) (entity.Thing, error) {
+	var t entity.Thing
+	err := r.db.QueryRow(
+		"SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thingWHERE id = $1 AND user_id = $2 AND is_deleted = FALSE",
+		id, userID,
+	).Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice, &t.UserID)
+
+	if err != nil {
+		return entity.Thing{}, err
+	}
+
+	return t, nil
 }

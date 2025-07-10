@@ -1,7 +1,8 @@
 POST http://localhost/admin/expense
+Authorization:0023959e3743ac9f4f5ace9550972fd9
 
 {
-    "thing_id": 3,
+    "thing_id": 4,
     "sum": 50000,
     "description": "ремонт",
     "expense_date": "2025-05-05T00:00:00Z"

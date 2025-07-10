@@ -6,6 +6,7 @@ import (
 	"log"
 	"main/controllers"
 	"main/db"
+	"main/middleware"
 	"net/http"
 )
 
@@ -20,13 +21,16 @@ func main() {
 	app := controllers.NewApp(db)
 	router := mux.NewRouter()
 
-	router.Use(CorsMiddleware)
-	router.HandleFunc("/", app.HomeController)
+	router.Use(middleware.CorsMiddleware)
+	router.Use(middleware.LoggingMiddleware)
+	router.Use(middleware.AuthMiddleware(db))
+
+	router.HandleFunc("/auth", app.AuthHandler).Methods("POST", "OPTIONS")
+	router.HandleFunc("/admin/user", app.AdminUserController).Methods("POST")
+	router.HandleFunc("/", app.HomeController).Methods("GET")
 	router.HandleFunc("/admin/thing", app.AdminThingController).Methods("POST")
 	router.HandleFunc("/admin/thing/{id:[0-9]+}", app.AdminThingUpdateController).Methods("PUT")
 	router.HandleFunc("/admin/expense", app.AdminExpenseController).Methods("POST")
-	router.HandleFunc("/auth", app.AuthHandler).Methods("POST", "OPTIONS")
-	router.HandleFunc("/admin/user", app.AdminUserController).Methods("POST")
 
 	err = http.ListenAndServe(":80", router)
 	if err != nil {
@@ -34,21 +38,4 @@ func main() {
 	} else {
 		log.Println("Main: Сервер запущен на 80-м порту.")
 	}
-}
-
-func CorsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		next.ServeHTTP(w, r)
-	})
 }
