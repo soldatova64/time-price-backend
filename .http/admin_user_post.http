@@ -7,6 +7,17 @@ Content-Type: application/json
   "password": "qwerty123ffg"
 }
 
+
+###
+POST http://localhost/admin/user
+Content-Type: application/json
+
+{
+"username": "anna",
+"email": "anna@anna.com",
+"password": "anna1234"
+}
+
 ###
 POST http://localhost/admin/user
 Content-Type: application/json

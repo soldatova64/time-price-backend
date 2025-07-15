@@ -13,10 +13,21 @@ import (
 )
 
 func (app *App) HomeController(writer http.ResponseWriter, request *http.Request) {
-	things, err := thing.NewRepository(app.db).FindAll()
+	meta := models.Meta{Action: "home"}
+
+	things, err := thing.NewRepository(app.db).FindAllByUserID()
 	if err != nil {
-		http.Error(writer, "Ошибка базы данных.", http.StatusInternalServerError)
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "database",
+					Message: "Ошибка при получении данных",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(errorResponse)
 		return
 	}
 

@@ -2,6 +2,7 @@ package auth_token
 
 import (
 	"database/sql"
+	"errors"
 	"main/entity"
 	"time"
 )
@@ -37,18 +38,25 @@ func (r *Repository) AddToken(authToken *entity.AuthToken, durationHours int) (*
 }
 
 func (r *Repository) FindByToken(token string) (entity.AuthToken, error) {
-	query := `SELECT * FROM auth_tokens WHERE token = $1`
+
+	query := `SELECT id, user_id, token, created_at, end_date 
+              FROM auth_tokens WHERE token = $1`
+
 	var authToken entity.AuthToken
 	err := r.db.QueryRow(query, token).Scan(
 		&authToken.ID,
-		&authToken.CreatedAt,
+		&authToken.UserID,
 		&authToken.Token,
 		&authToken.CreatedAt,
 		&authToken.EndDate,
 	)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.AuthToken{}, nil
+		}
 		return entity.AuthToken{}, err
 	}
+
 	return authToken, nil
 }

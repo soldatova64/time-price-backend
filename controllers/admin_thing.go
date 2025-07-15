@@ -17,8 +17,18 @@ import (
 
 func (app *App) AdminThingController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing"}
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
-	writer.Header().Set("Content-Type", "application/json")
+
+	userID, ok := request.Context().Value("userID").(int)
+	if !ok || userID == 0 {
+		json.NewEncoder(writer).Encode(responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{Field: "auth", Message: "Неверный идентификатор пользователя"},
+			},
+		})
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	var req requests.ThingRequest
 	if err := json.NewDecoder(request.Body).Decode(&req); err != nil {
@@ -84,6 +94,7 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 		PayPrice:  req.PayPrice,
 		SaleDate:  req.SaleDate,
 		SalePrice: req.SalePrice,
+		UserID:    userID,
 	}
 
 	thingRepo := thing.NewRepository(app.db)
@@ -117,8 +128,6 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 
 func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing_update"}
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
-	writer.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(request)
 	idStr := vars["id"]
