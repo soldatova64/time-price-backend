@@ -142,10 +142,9 @@ func (r *Repository) Update(thing entity.Thing) (entity.Thing, error) {
 	return thing, nil
 }
 
-func (r *Repository) FindAllByUserID(userID int) ([]entity.Thing, error) {
+func (r *Repository) FindAllByUserID() ([]entity.Thing, error) {
 	rows, err := r.db.Query(
-		"SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thing WHERE is_deleted = FALSE AND user_id = $1",
-		userID)
+		"SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thing WHERE is_deleted = FALSE AND user_id = $1")
 
 	if err != nil {
 		return nil, err
@@ -164,18 +163,4 @@ func (r *Repository) FindAllByUserID(userID int) ([]entity.Thing, error) {
 	}
 
 	return things, nil
-}
-
-func (r *Repository) FindByIDAndUserID(id, userID int) (entity.Thing, error) {
-	var t entity.Thing
-	err := r.db.QueryRow(
-		"SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thingWHERE id = $1 AND user_id = $2 AND is_deleted = FALSE",
-		id, userID,
-	).Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice, &t.UserID)
-
-	if err != nil {
-		return entity.Thing{}, err
-	}
-
-	return t, nil
 }

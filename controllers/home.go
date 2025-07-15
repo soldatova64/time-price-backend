@@ -5,7 +5,6 @@ import (
 	"main/entity"
 	"main/models"
 	"main/models/responses"
-	"main/repositories/auth_token"
 	"main/repositories/expense"
 	"main/repositories/thing"
 	"math"
@@ -16,24 +15,7 @@ import (
 func (app *App) HomeController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "home"}
 
-	token := request.Header.Get("Authorization")
-	authToken, err := auth_token.NewRepository(app.db).FindByToken(token)
-	if err != nil || authToken.UserID == 0 {
-		errorResponse := responses.ErrorResponse{
-			Meta: meta,
-			Errors: []responses.Error{
-				{
-					Field:   "auth",
-					Message: "Необходима авторизация",
-				},
-			},
-		}
-		writer.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(writer).Encode(errorResponse)
-		return
-	}
-
-	things, err := thing.NewRepository(app.db).FindAllByUserID(authToken.UserID)
+	things, err := thing.NewRepository(app.db).FindAllByUserID()
 	if err != nil {
 		errorResponse := responses.ErrorResponse{
 			Meta: meta,
