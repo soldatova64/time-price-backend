@@ -14,16 +14,18 @@ import (
 func AuthMiddleware(db *sql.DB) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token := r.Header.Get("Authorization")
-			log.Printf("Получен токен: %s", token)
-			if token == "" {
-				log.Printf("Токен отсутствует")
-				http.Error(w, "Требуется авторизация", http.StatusUnauthorized)
-				return
+			cookie, err := r.Cookie("auth_token")
+			if err != nil {
+				authHeader := r.Header.Get("Authorization")
+				if authHeader == "" {
+					http.Error(w, "Требуется авторизация", http.StatusUnauthorized)
+					return
+				}
+				cookie = &http.Cookie{Value: authHeader}
 			}
 
 			repo := auth_token.NewRepository(db)
-			authToken, err := repo.FindByToken(token)
+			authToken, err := repo.FindByToken(cookie.Value)
 			if err != nil {
 				log.Printf("Ошибка поиска токена: %v", err)
 				json.NewEncoder(w).Encode(responses.ErrorResponse{

@@ -11,4 +11,5 @@ type ThingRequest struct {
 	PayPrice  int             `json:"pay_price" validate:"required,gt=0"`
 	SaleDate  types.NullTime  `json:"sale_date"`
 	SalePrice types.NullInt64 `json:"sale_price"`
+	UserID    int             `json:"user_id"`
 }

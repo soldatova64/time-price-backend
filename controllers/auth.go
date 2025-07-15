@@ -1,11 +1,10 @@
 package controllers
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"log"
 	"main/entity"
+	"main/helpers"
 	"main/models"
 	"main/models/requests"
 	"main/models/responses"
@@ -105,7 +104,7 @@ func (c *App) AuthHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	token, err := generateToken()
+	token, err := helpers.GenerateToken()
 	if err != nil {
 		log.Println("Token generation error:", err)
 		errorResponse := responses.ErrorResponse{
@@ -138,7 +137,7 @@ func (c *App) AuthHandler(writer http.ResponseWriter, request *http.Request) {
 			Errors: []responses.Error{
 				{
 					Field:   "system",
-					Message: "Внутренняя ошибка сервера",
+					Message: "Не удалось создать токен авторизации",
 				},
 			},
 		}
@@ -146,6 +145,16 @@ func (c *App) AuthHandler(writer http.ResponseWriter, request *http.Request) {
 		json.NewEncoder(writer).Encode(errorResponse)
 		return
 	}
+
+	http.SetCookie(writer, &http.Cookie{
+		Name:     "auth_token",
+		Value:    token,
+		Path:     "/",
+		MaxAge:   24 * 60 * 60, // 1 день
+		HttpOnly: true,
+		Secure:   false, // В production должно быть true
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	response := struct {
 		Meta models.Meta            `json:"meta"`
@@ -161,12 +170,4 @@ func (c *App) AuthHandler(writer http.ResponseWriter, request *http.Request) {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(writer, "Ошибка формирования JSON", http.StatusInternalServerError)
 	}
-}
-
-func generateToken() (string, error) {
-	bytes := make([]byte, 16)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
 }

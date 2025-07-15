@@ -23,15 +23,19 @@ func main() {
 
 	router.Use(middleware.CorsMiddleware)
 	router.Use(middleware.LoggingMiddleware)
-	router.Use(middleware.AuthMiddleware(db))
 
-	router.HandleFunc("/auth", app.AuthHandler).Methods("POST", "OPTIONS")
-	router.HandleFunc("/admin/user", app.AdminUserController).Methods("POST")
-	router.HandleFunc("/", app.HomeController).Methods("GET")
-	router.HandleFunc("/admin/thing", app.AdminThingController).Methods("POST")
-	router.HandleFunc("/admin/thing/{id:[0-9]+}", app.AdminThingUpdateController).Methods("PUT")
-	router.HandleFunc("/admin/expense", app.AdminExpenseController).Methods("POST")
+	// Публичные роуты (без аутентификации)
+	publicRouter := router.PathPrefix("").Subrouter()
+	publicRouter.HandleFunc("/auth", app.AuthHandler).Methods("POST", "OPTIONS")
+	publicRouter.HandleFunc("/admin/user", app.AdminUserController).Methods("POST")
 
+	// Защищенные роуты (требуют аутентификации)
+	protectedRouter := router.PathPrefix("").Subrouter()
+	protectedRouter.Use(middleware.AuthMiddleware(db))
+	protectedRouter.HandleFunc("/", app.HomeController).Methods("GET")
+	protectedRouter.HandleFunc("/admin/thing", app.AdminThingController).Methods("POST")
+	protectedRouter.HandleFunc("/admin/thing/{id:[0-9]+}", app.AdminThingUpdateController).Methods("PUT")
+	protectedRouter.HandleFunc("/admin/expense", app.AdminExpenseController).Methods("POST")
 	err = http.ListenAndServe(":80", router)
 	if err != nil {
 		log.Fatal("Main: Ошибка сервера: ", err)

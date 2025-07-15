@@ -10,7 +10,6 @@ import (
 	"main/models"
 	"main/models/requests"
 	"main/models/responses"
-	"main/repositories/auth_token"
 	"main/repositories/thing"
 	"net/http"
 	"strconv"
@@ -19,20 +18,15 @@ import (
 func (app *App) AdminThingController(writer http.ResponseWriter, request *http.Request) {
 	meta := models.Meta{Action: "admin_thing"}
 
-	token := request.Header.Get("Authorization")
-	authToken, err := auth_token.NewRepository(app.db).FindByToken(token)
-	if err != nil || authToken.UserID == 0 {
-		errorResponse := responses.ErrorResponse{
+	userID, ok := request.Context().Value("userID").(int)
+	if !ok || userID == 0 {
+		json.NewEncoder(writer).Encode(responses.ErrorResponse{
 			Meta: meta,
 			Errors: []responses.Error{
-				{
-					Field:   "auth",
-					Message: "Необходима авторизация",
-				},
+				{Field: "auth", Message: "Неверный идентификатор пользователя"},
 			},
-		}
+		})
 		writer.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(writer).Encode(errorResponse)
 		return
 	}
 
@@ -100,9 +94,8 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 		PayPrice:  req.PayPrice,
 		SaleDate:  req.SaleDate,
 		SalePrice: req.SalePrice,
+		UserID:    userID,
 	}
-
-	thingEntity.UserID = authToken.UserID
 
 	thingRepo := thing.NewRepository(app.db)
 	createdThing, err := thingRepo.Add(app.db, &thingEntity)

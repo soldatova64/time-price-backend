@@ -77,8 +77,8 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 	return thing, nil
 }
 
-func (r *Repository) Find(userID int) (entity.Thing, error) {
-	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thing WHERE is_deleted = FALSE AND user_id = $1", userID)
+func (r *Repository) Find(ID int) (entity.Thing, error) {
+	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thing WHERE is_deleted = FALSE AND id = $1", ID)
 
 	if err != nil {
 		log.Println(err)
@@ -89,7 +89,7 @@ func (r *Repository) Find(userID int) (entity.Thing, error) {
 	for rows.Next() {
 		var t entity.Thing
 
-		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice)
+		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice, &t.UserID)
 
 		if err != nil {
 			log.Println(err)

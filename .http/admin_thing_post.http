@@ -1,5 +1,4 @@
 POST http://localhost/admin/thing
-Authorization:0023959e3743ac9f4f5ace9550972fd9
 
 {
     "name": "вещь1",
@@ -12,7 +11,6 @@ Authorization:0023959e3743ac9f4f5ace9550972fd9
 ###
 
 POST http://localhost/admin/thing
-Authorization:a3e1243ba7e63d6f299a3cd5b5a5745a
 
 {
     "name": "вещь2",
