@@ -27,6 +27,7 @@ func main() {
 	router.HandleFunc("/admin/expense", app.AdminExpenseController).Methods("POST")
 	router.HandleFunc("/auth", app.AuthHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/admin/user", app.AdminUserController).Methods("POST")
+	router.HandleFunc("/register", app.RegisterController).Methods("POST")
 
 	err = http.ListenAndServe(":80", router)
 	if err != nil {

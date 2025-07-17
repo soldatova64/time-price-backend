@@ -1,0 +1,50 @@
+POST http://localhost/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "Secureass123"
+}
+
+###
+POST http://localhost/register
+Content-Type: application/json
+
+{
+  "username": "",
+  "email": "test@example.com",
+  "password": "SecurePass123!"
+}
+
+###
+POST http://localhost/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "",
+  "password": "SecurePass123!"
+}
+
+###
+POST http://localhost/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example",
+  "password": "SecurePass123!"
+}
+
+###
+POST http://localhost/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": ""
+}
+
+###
