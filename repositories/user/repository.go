@@ -28,8 +28,8 @@ func (r *Repository) FindAll() ([]entity.User, error) {
 		err = rows.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt, &u.UpdatedAt, &u.IsDeleted, &u.DeletedAt)
 		if err != nil {
 			return nil, err
-			users = append(users, u)
 		}
+		users = append(users, u)
 	}
 	return users, nil
 }
@@ -70,3 +70,34 @@ func (r *Repository) Add(user *entity.User) (*entity.User, error) {
 	user.ID = id
 	return user, nil
 }
+
+//func (r *Repository) FindByUsername(username string) (*entity.User, error) {
+//	query := `SELECT id, username, email FROM users WHERE username = $1 AND is_deleted = FALSE`
+//	row := r.db.QueryRow(query, username)
+//
+//	var user entity.User
+//	err := row.Scan(&user.ID, &user.Username, &user.Email)
+//	if err != nil {
+//		if err == sql.ErrNoRows {
+//			return nil, nil
+//		}
+//		return nil, err
+//	}
+//	return &user, nil
+//}
+//
+//func (r *Repository) FindByEmail(email string) (*entity.User, error) {
+//	query := `SELECT id, username, email FROM users WHERE email = $1 AND is_deleted = FALSE`
+//	row := r.db.QueryRow(query, email)
+//
+//	var user entity.User
+//	err := row.Scan(&user.ID, &user.Username, &user.Email)
+//	if err != nil {
+//		if err == sql.ErrNoRows {
+//			return nil, nil
+//		}
+//		return nil, err
+//	}
+//	return &user, nil
+//
+//}
