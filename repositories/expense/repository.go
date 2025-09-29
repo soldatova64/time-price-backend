@@ -12,6 +12,7 @@ type Repository struct {
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
+
 func (r *Repository) FindAll() ([]entity.Expense, error) {
 	rows, err := r.db.Query("SELECT id, thing_id, sum, description, expense_date, created_at  FROM expense WHERE is_deleted = FALSE")
 	if err != nil {

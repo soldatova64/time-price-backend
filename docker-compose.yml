@@ -1,6 +1,6 @@
 services:
   server:
-    image: soldatova64/time-price-backend:latest
+
     build: .
     depends_on:
       - db
@@ -9,17 +9,20 @@ services:
     restart: unless-stopped
     environment:
       - ENV=development
-    volumes:
-      - ./:/app
-    command: go run main.go
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - TOKEN_DURATION_HOURS=${TOKEN_DURATION_HOURS}
+
   db:
     image: postgres:17.4-alpine3.21
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
-    ports:
-      - "5432:5432"
+
     volumes:
       - postgres-db:/var/lib/postgresql/data
 
