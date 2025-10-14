@@ -1,4 +1,4 @@
-FROM golang:1.24.1 AS builder
+FROM golang:1.24.1 as builder
 WORKDIR /app
 COPY go.mod ./
 RUN go mod download
@@ -18,3 +18,4 @@ RUN chmod +x app
 COPY .env.example .env
 EXPOSE 80
 CMD ["./app"]
+EXPOSE 8080

@@ -29,11 +29,11 @@ func main() {
 	router.HandleFunc("/admin/user", app.AdminUserController).Methods("POST")
 	router.HandleFunc("/register", app.RegisterController).Methods("POST")
 
-	err = http.ListenAndServe(":80", router)
+	err = http.ListenAndServe(":8080", router)
 	if err != nil {
 		log.Fatal("Main: Ошибка сервера: ", err)
 	} else {
-		log.Println("Main: Сервер запущен на 80-м порту.")
+		log.Println("Main: Сервер запущен на 8080-м порту.")
 	}
 }
 
