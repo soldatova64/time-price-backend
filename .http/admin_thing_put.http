@@ -1,4 +1,4 @@
-PUT http://localhost/admin/thing/1
+PUT http://localhost:8080/admin/thing/1
 
 {
     "name": "обновленная вещь1",
@@ -10,7 +10,7 @@ PUT http://localhost/admin/thing/1
 
 ###
 
-PUT http://localhost/admin/thing/2
+PUT http://localhost:8080/admin/thing/2
 
 {
     "name": "обновленная вещь2",
@@ -22,7 +22,7 @@ PUT http://localhost/admin/thing/2
 
 ###
 
-PUT http://localhost/admin/thing/2
+PUT http://localhost:8080/admin/thing/2
 
 {
     "name": "обновленная вещь3"
@@ -30,7 +30,7 @@ PUT http://localhost/admin/thing/2
 
 ###
 
-PUT http://localhost/admin/thing/2
+PUT http://localhost:8080/admin/thing/2
 
 {
     "sale_date": "2025-03-03T00:00:00Z"
@@ -38,7 +38,7 @@ PUT http://localhost/admin/thing/2
 
 ###
 
-PUT http://localhost/admin/thing/2
+PUT http://localhost:8080/admin/thing/2
 
 {
     "pay_price": 1999

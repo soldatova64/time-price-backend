@@ -1,4 +1,4 @@
-POST http://localhost/admin/user
+POST http://localhost:8080/admin/user
 Content-Type: application/json
 
 {
@@ -8,7 +8,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost/admin/user
+POST http://localhost:8080/admin/user
 Content-Type: application/json
 
 {
@@ -18,7 +18,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost/admin/user
+POST http://localhost:8080/admin/user
 Content-Type: application/json
 
 {
@@ -28,7 +28,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost/admin/user
+POST http://localhost:8080/admin/user
 Content-Type: application/json
 
 {
@@ -38,7 +38,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost/admin/user
+POST http://localhost:8080/admin/user
 Content-Type: application/json
 
 {

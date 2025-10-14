@@ -1,4 +1,4 @@
-POST http://localhost/admin/thing
+POST http://localhost:8080/admin/thing
 
 {
     "name": "вещь1",
@@ -10,7 +10,7 @@ POST http://localhost/admin/thing
 
 ###
 
-POST http://localhost/admin/thing
+POST http://localhost:8080/admin/thing
 
 {
     "name": "вещь2",
@@ -22,7 +22,7 @@ POST http://localhost/admin/thing
 
 ###
 
-POST http://localhost/admin/thing
+POST http://localhost:8080/admin/thing
 
 {
     "name": "вещь3",
@@ -34,7 +34,7 @@ POST http://localhost/admin/thing
 
 ###
 
-POST http://localhost/admin/thing
+POST http://localhost:8080/admin/thing
 
 {
     "name": "вещь4",
@@ -46,7 +46,7 @@ POST http://localhost/admin/thing
 
 ###
 
-POST http://localhost/admin/thing
+POST http://localhost:8080/admin/thing
 
 {
     "name": "вещь5",
@@ -58,7 +58,7 @@ POST http://localhost/admin/thing
 
 ###
 
-POST http://localhost/admin/thing
+POST http://localhost:8080/admin/thing
 
 {
     "name": "вещь6",
@@ -70,7 +70,7 @@ POST http://localhost/admin/thing
 
 ###
 
-POST http://localhost/admin/thing
+POST http://localhost:8080/admin/thing
 
 {
     "name": "вещь7",
