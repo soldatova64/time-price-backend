@@ -16,5 +16,5 @@ COPY --from=builder /app/migrations ./migrations
 RUN chmod +x app
 # Копируем .env файл (если нужен)
 COPY .env.example .env
-CMD ["./app"]
 EXPOSE 8080
+CMD ["./app"]

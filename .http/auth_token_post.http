@@ -1,4 +1,4 @@
-POST http://localhost/auth
+POST http://localhost:8080/auth
 Content-Type: application/json
 
 {
@@ -7,7 +7,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost/auth
+POST http://localhost:8080/auth
 Content-Type: application/json
 
 {
