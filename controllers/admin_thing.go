@@ -20,6 +20,22 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 	writer.Header().Set("Access-Control-Allow-Origin", "*")
 	writer.Header().Set("Content-Type", "application/json")
 
+	userID, ok := request.Context().Value("user_id").(int)
+	if !ok {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "auth",
+					Message: "Требуется авторизация2",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
 	var req requests.ThingRequest
 	if err := json.NewDecoder(request.Body).Decode(&req); err != nil {
 		errorResponse := responses.ErrorResponse{
@@ -84,6 +100,7 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 		PayPrice:  req.PayPrice,
 		SaleDate:  req.SaleDate,
 		SalePrice: req.SalePrice,
+		UserID:    userID,
 	}
 
 	thingRepo := thing.NewRepository(app.db)
@@ -120,6 +137,22 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 	writer.Header().Set("Access-Control-Allow-Origin", "*")
 	writer.Header().Set("Content-Type", "application/json")
 
+	userID, ok := request.Context().Value("user_id").(int)
+	if !ok {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "auth",
+					Message: "Требуется авторизация3",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
 	vars := mux.Vars(request)
 	idStr := vars["id"]
 	id, err := strconv.Atoi(idStr)
@@ -139,7 +172,7 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 	}
 
 	thingRepo := thing.NewRepository(app.db)
-	thingEntity, err := thingRepo.Find(id)
+	thingEntity, err := thingRepo.Find(id, userID)
 	if err != nil {
 		log.Printf("Database error: %v", err)
 		errorResponse := responses.ErrorResponse{

@@ -41,7 +41,7 @@ func (r *Repository) FindByToken(token string) (entity.AuthToken, error) {
 	var authToken entity.AuthToken
 	err := r.db.QueryRow(query, token).Scan(
 		&authToken.ID,
-		&authToken.CreatedAt,
+		&authToken.UserID,
 		&authToken.Token,
 		&authToken.CreatedAt,
 		&authToken.EndDate,

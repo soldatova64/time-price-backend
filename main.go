@@ -6,6 +6,7 @@ import (
 	"log"
 	"main/controllers"
 	"main/db"
+	"main/middleware"
 	"net/http"
 )
 
@@ -21,6 +22,8 @@ func main() {
 	router := mux.NewRouter()
 
 	router.Use(CorsMiddleware)
+	router.Use(middleware.AuthMiddleware(db))
+
 	router.HandleFunc("/", app.HomeController)
 	router.HandleFunc("/admin/thing", app.AdminThingController).Methods("POST")
 	router.HandleFunc("/admin/thing/{id:[0-9]+}", app.AdminThingUpdateController).Methods("PUT")
@@ -39,10 +42,10 @@ func main() {
 
 func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)

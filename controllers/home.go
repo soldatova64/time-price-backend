@@ -13,7 +13,14 @@ import (
 )
 
 func (app *App) HomeController(writer http.ResponseWriter, request *http.Request) {
-	things, err := thing.NewRepository(app.db).FindAll()
+	// Получаем user_id из контекста
+	userID, ok := request.Context().Value("user_id").(int)
+	if !ok {
+		http.Error(writer, `{"error": "Требуется авторизация1"}`, http.StatusUnauthorized)
+		return
+	}
+
+	things, err := thing.NewRepository(app.db).FindAll(userID)
 	if err != nil {
 		http.Error(writer, "Ошибка базы данных.", http.StatusInternalServerError)
 		http.Error(writer, err.Error(), http.StatusInternalServerError)

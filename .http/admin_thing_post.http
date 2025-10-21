@@ -1,6 +1,8 @@
 POST http://localhost:8080/admin/thing
+Authorization: ad7cf2ead580b1ecc356ea1e6be9b0d8
 
 {
+    "user_id": 4,
     "name": "вещь1",
     "pay_date": "2025-01-01T00:00:00+03:00",
     "pay_price": 1000,

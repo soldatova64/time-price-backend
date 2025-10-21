@@ -14,8 +14,11 @@ func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) FindAll() ([]entity.Thing, error) {
-	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price FROM thing WHERE is_deleted = FALSE")
+func (r *Repository) FindAll(userID int) ([]entity.Thing, error) {
+	rows, err := r.db.Query(
+		"SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thing WHERE is_deleted = FALSE AND user_id = $1",
+		userID,
+	)
 
 	if err != nil {
 		return nil, err
@@ -27,7 +30,7 @@ func (r *Repository) FindAll() ([]entity.Thing, error) {
 	for rows.Next() {
 		var t entity.Thing
 
-		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice)
+		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice, &t.UserID)
 
 		if err != nil {
 			return nil, err
@@ -59,12 +62,13 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 		salePrice = nil
 	}
 
-	query := `INSERT INTO thing(name, pay_date, pay_price, sale_date, sale_price) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	query := `INSERT INTO thing(name, pay_date, pay_price, sale_date, sale_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 	err := db.QueryRow(
 		query,
 		thing.Name,
 		thing.PayDate,
 		thing.PayPrice,
+		thing.UserID,
 		saleDate,
 		salePrice,
 	).Scan(&thing.ID)
@@ -76,8 +80,11 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 	return thing, nil
 }
 
-func (r *Repository) Find(id int) (entity.Thing, error) {
-	rows, err := r.db.Query("SELECT id, name, pay_date, pay_price, sale_date, sale_price FROM thing WHERE id = $1", id)
+func (r *Repository) Find(id, userID int) (entity.Thing, error) {
+	rows, err := r.db.Query(
+		"SELECT id, name, pay_date, pay_price, sale_date, sale_price, user_id FROM thing WHERE id = $1 AND user_id = $2 AND is_deleted = FALSE",
+		id, userID,
+	)
 
 	if err != nil {
 		log.Println(err)
@@ -88,7 +95,7 @@ func (r *Repository) Find(id int) (entity.Thing, error) {
 	for rows.Next() {
 		var t entity.Thing
 
-		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice)
+		err = rows.Scan(&t.ID, &t.Name, &t.PayDate, &t.PayPrice, &t.SaleDate, &t.SalePrice, &t.UserID)
 
 		if err != nil {
 			log.Println(err)
@@ -111,7 +118,7 @@ func (r *Repository) Update(thing entity.Thing) (entity.Thing, error) {
 		pay_price = $3, 
 		sale_date = $4, 
 		sale_price = $5 
-	WHERE id = $6`
+	WHERE id = $6 AND user_id = $7 AND is_deleted = FALSE`
 
 	var saleDate interface{}
 	if thing.SaleDate.Valid {
@@ -133,7 +140,8 @@ func (r *Repository) Update(thing entity.Thing) (entity.Thing, error) {
 		thing.PayPrice,
 		saleDate,
 		salePrice,
-		thing.ID)
+		thing.ID,
+		thing.UserID)
 	if err != nil {
 		log.Println(err)
 	}

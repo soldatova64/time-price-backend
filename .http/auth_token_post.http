@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
   "username": "testuser",
-  "password": "hashed_qwerty123ffg"
+  "password": "Qwerty123ffg"
 }
 
 ###
