@@ -1,4 +1,6 @@
 PUT http://localhost:8080/admin/thing/1
+Content-Type: application/json
+Authorization: a33962f9e14a3389f38f365daf61549d
 
 {
     "name": "обновленная вещь1",

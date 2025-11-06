@@ -1,8 +1,8 @@
 POST http://localhost:8080/admin/thing
-Authorization: ad7cf2ead580b1ecc356ea1e6be9b0d8
+Content-Type: application/json
+Authorization: Bearer a33962f9e14a3389f38f365daf61549d
 
 {
-    "user_id": 4,
     "name": "вещь1",
     "pay_date": "2025-01-01T00:00:00+03:00",
     "pay_price": 1000,
@@ -13,6 +13,8 @@ Authorization: ad7cf2ead580b1ecc356ea1e6be9b0d8
 ###
 
 POST http://localhost:8080/admin/thing
+Content-Type: application/json
+Authorization: Bearer adb6e7fa3cc3ec21c41de2f427e7bdc9
 
 {
     "name": "вещь2",

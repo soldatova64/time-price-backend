@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"main/entity"
+	"strings"
 )
 
 type Repository struct {
@@ -46,11 +47,12 @@ func (r *Repository) FindAll(userID int) ([]entity.Thing, error) {
 	return things, nil
 }
 
-func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error) {
-
+func (r *Repository) Add(thing *entity.Thing) (*entity.Thing, error) {
+	thing.ID = 0
+	payDate := thing.PayDate.Format("2006-01-02")
 	var saleDate interface{}
 	if thing.SaleDate.Valid {
-		saleDate = thing.SaleDate.Time
+		saleDate = thing.SaleDate.Time.Format("2006-01-02") // Форматируем дату продажи
 	} else {
 		saleDate = nil
 	}
@@ -62,21 +64,33 @@ func (r *Repository) Add(db *sql.DB, thing *entity.Thing) (*entity.Thing, error)
 		salePrice = nil
 	}
 
-	query := `INSERT INTO thing(name, pay_date, pay_price, sale_date, sale_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
-	err := db.QueryRow(
+	query := `INSERT INTO thing(name, pay_date, pay_price, sale_date, sale_price, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+	err := r.db.QueryRow(
 		query,
 		thing.Name,
-		thing.PayDate,
+		payDate,
 		thing.PayPrice,
-		thing.UserID,
 		saleDate,
 		salePrice,
+		thing.UserID,
 	).Scan(&thing.ID)
 	if err != nil {
-		log.Println(err)
+		// Если ошибка из-за дубликата ключа, сбросим последовательность
+		if strings.Contains(err.Error(), "duplicate key") {
+			log.Println("Duplicate key error detected, resetting sequence...")
+			_, resetErr := r.db.Exec("SELECT setval('thing_id_seq', (SELECT COALESCE(MAX(id), 1) FROM thing))")
+			if resetErr != nil {
+				log.Printf("Error resetting sequence: %v", resetErr)
+				return nil, err
+			}
+			// Повторяем вставку
+			return r.Add(thing)
+		}
+		log.Printf("Database error in Thing Add: %v", err)
 		return nil, err
 	}
 
+	log.Printf("Successfully created thing with ID: %d", thing.ID)
 	return thing, nil
 }
 

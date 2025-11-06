@@ -104,7 +104,7 @@ func (app *App) AdminThingController(writer http.ResponseWriter, request *http.R
 	}
 
 	thingRepo := thing.NewRepository(app.db)
-	createdThing, err := thingRepo.Add(app.db, &thingEntity)
+	createdThing, err := thingRepo.Add(&thingEntity)
 	if err != nil {
 		log.Printf("Database error: %v", err)
 		errorResponse := responses.ErrorResponse{
@@ -196,7 +196,7 @@ func (app *App) AdminThingUpdateController(writer http.ResponseWriter, request *
 			Errors: []responses.Error{
 				{
 					Field:   "request",
-					Message: "Недопустимый формат запроса",
+					Message: "Недопустимый формат запроса5",
 				},
 			},
 		}

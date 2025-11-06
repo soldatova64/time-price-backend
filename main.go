@@ -21,7 +21,7 @@ func main() {
 	app := controllers.NewApp(db)
 	router := mux.NewRouter()
 
-	router.Use(CorsMiddleware)
+	router.Use(middleware.CorsMiddleware)
 	router.Use(middleware.AuthMiddleware(db))
 
 	router.HandleFunc("/", app.HomeController)
@@ -38,21 +38,4 @@ func main() {
 	} else {
 		log.Println("Main: Сервер запущен на 8080-м порту.")
 	}
-}
-
-func CorsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		next.ServeHTTP(w, r)
-	})
 }
