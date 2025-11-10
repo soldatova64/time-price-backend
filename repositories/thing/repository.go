@@ -75,7 +75,6 @@ func (r *Repository) Add(thing *entity.Thing) (*entity.Thing, error) {
 		thing.UserID,
 	).Scan(&thing.ID)
 	if err != nil {
-		// Если ошибка из-за дубликата ключа, сбросим последовательность
 		if strings.Contains(err.Error(), "duplicate key") {
 			log.Println("Duplicate key error detected, resetting sequence...")
 			_, resetErr := r.db.Exec("SELECT setval('thing_id_seq', (SELECT COALESCE(MAX(id), 1) FROM thing))")
@@ -83,7 +82,6 @@ func (r *Repository) Add(thing *entity.Thing) (*entity.Thing, error) {
 				log.Printf("Error resetting sequence: %v", resetErr)
 				return nil, err
 			}
-			// Повторяем вставку
 			return r.Add(thing)
 		}
 		log.Printf("Database error in Thing Add: %v", err)
