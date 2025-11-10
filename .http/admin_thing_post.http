@@ -1,4 +1,6 @@
 POST http://localhost:8080/admin/thing
+Content-Type: application/json
+Authorization: Bearer a33962f9e14a3389f38f365daf61549d
 
 {
     "name": "вещь1",
@@ -11,6 +13,8 @@ POST http://localhost:8080/admin/thing
 ###
 
 POST http://localhost:8080/admin/thing
+Content-Type: application/json
+Authorization: Bearer adb6e7fa3cc3ec21c41de2f427e7bdc9
 
 {
     "name": "вещь2",

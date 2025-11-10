@@ -1,8 +1,9 @@
 POST http://localhost:8080/admin/user
 Content-Type: application/json
+Authorization: Bearer a33962f9e14a3389f38f365daf61549d
 
 {
-  "username": "testuser",
+  "username": "anna1",
   "email": "test@example.com",
   "password": "Qwerty123ffg"
 }
@@ -22,9 +23,9 @@ POST http://localhost:8080/admin/user
 Content-Type: application/json
 
 {
-  "username": "testuser",
+  "username": "anna1",
   "email": "biektrnb",
-  "password": "qwerty123"
+  "password": "Qwerty123ffg"
 }
 
 ###
@@ -34,7 +35,7 @@ Content-Type: application/json
 {
   "username": "",
   "email": "test@example.com",
-  "password": "qwerty123"
+  "password": "Qwerty123ffg"
 }
 
 ###
@@ -42,7 +43,7 @@ POST http://localhost:8080/admin/user
 Content-Type: application/json
 
 {
-  "username": "testuser",
+  "username": "anna1",
   "email": "test@example.com",
   "password": ""
 }
