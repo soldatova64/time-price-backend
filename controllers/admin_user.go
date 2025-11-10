@@ -74,7 +74,22 @@ func (app *App) AdminUserController(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	passwordHash := helpers.HashPassword(req.Password)
+	passwordHash, err := helpers.HashPassword(req.Password)
+	if err != nil {
+		log.Printf("Error hashing password: %v", err)
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "system",
+					Message: "Ошибка при обработке пароля",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
 
 	userRepo := user.NewRepository(app.db)
 	newUser := &entity.User{
@@ -83,7 +98,7 @@ func (app *App) AdminUserController(writer http.ResponseWriter, request *http.Re
 		Password: passwordHash,
 	}
 
-	newUser, err := userRepo.Add(newUser)
+	newUser, err = userRepo.Add(newUser)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		errorResponse := responses.ErrorResponse{
@@ -185,7 +200,22 @@ func (app *App) RegisterController(writer http.ResponseWriter, request *http.Req
 		return
 	}
 
-	passwordHash := helpers.HashPassword(req.Password)
+	passwordHash, err := helpers.HashPassword(req.Password)
+	if err != nil {
+		log.Printf("Error hashing password: %v", err)
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "system",
+					Message: "Ошибка при обработке пароля",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
 
 	userRepo := user.NewRepository(app.db)
 	newUser := &entity.User{
@@ -194,7 +224,7 @@ func (app *App) RegisterController(writer http.ResponseWriter, request *http.Req
 		Password: passwordHash,
 	}
 
-	newUser, err := userRepo.Add(newUser)
+	newUser, err = userRepo.Add(newUser)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		errorResponse := responses.ErrorResponse{

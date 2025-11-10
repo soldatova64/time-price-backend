@@ -35,20 +35,22 @@ func (r *Repository) FindAll() ([]entity.User, error) {
 }
 
 func (r *Repository) FindByUsernameAndPassword(username, password string) (*entity.User, error) {
-	hashedPassword := helpers.HashPassword(password)
-
-	query := `SELECT id, username FROM users 
-              WHERE username = $1 AND password = $2 AND is_deleted = FALSE`
-	row := r.db.QueryRow(query, username, hashedPassword)
+	query := `SELECT id, username, password FROM users 
+              WHERE username = $1 AND is_deleted = FALSE`
+	row := r.db.QueryRow(query, username)
 
 	var user entity.User
-	err := row.Scan(&user.ID, &user.Username)
-
+	var hashedPassword string
+	err := row.Scan(&user.ID, &user.Username, &hashedPassword)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
+	}
+
+	if !helpers.CheckPasswordHash(password, hashedPassword) {
+		return nil, nil
 	}
 
 	return &user, nil
@@ -70,34 +72,3 @@ func (r *Repository) Add(user *entity.User) (*entity.User, error) {
 	user.ID = id
 	return user, nil
 }
-
-//func (r *Repository) FindByUsername(username string) (*entity.User, error) {
-//	query := `SELECT id, username, email FROM users WHERE username = $1 AND is_deleted = FALSE`
-//	row := r.db.QueryRow(query, username)
-//
-//	var user entity.User
-//	err := row.Scan(&user.ID, &user.Username, &user.Email)
-//	if err != nil {
-//		if err == sql.ErrNoRows {
-//			return nil, nil
-//		}
-//		return nil, err
-//	}
-//	return &user, nil
-//}
-//
-//func (r *Repository) FindByEmail(email string) (*entity.User, error) {
-//	query := `SELECT id, username, email FROM users WHERE email = $1 AND is_deleted = FALSE`
-//	row := r.db.QueryRow(query, email)
-//
-//	var user entity.User
-//	err := row.Scan(&user.ID, &user.Username, &user.Email)
-//	if err != nil {
-//		if err == sql.ErrNoRows {
-//			return nil, nil
-//		}
-//		return nil, err
-//	}
-//	return &user, nil
-//
-//}
