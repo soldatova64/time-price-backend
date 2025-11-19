@@ -1,0 +1,10 @@
+PUT http://localhost:8080/admin/expense/12
+Content-Type: application/json
+Authorization: Bearer ad6ce4a9c0d5f660e431fd360530e94c
+
+{
+  "thing_id": 44,
+  "sum": 5555,
+  "description": "обновленный ремонт",
+  "expense_date": "2025-10-10T00:00:00Z"
+}
