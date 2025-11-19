@@ -55,3 +55,25 @@ func (r *Repository) Add(expense *entity.Expense) (*entity.Expense, error) {
 	return expense, nil
 
 }
+
+func (r *Repository) Update(expense *entity.Expense) (*entity.Expense, error) {
+	query := `UPDATE expense 
+	          SET thing_id = $1, sum = $2, description = $3, expense_date = $4 
+	          WHERE id = $5 AND is_deleted = FALSE 
+	          RETURNING id, thing_id, sum, description, expense_date`
+
+	err := r.db.QueryRow(
+		query,
+		expense.ThingID,
+		expense.Sum,
+		expense.Description,
+		expense.ExpenseDate,
+		expense.ID,
+	).Scan(&expense.ID, &expense.ThingID, &expense.Sum, &expense.Description, &expense.ExpenseDate)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return expense, nil
+}
