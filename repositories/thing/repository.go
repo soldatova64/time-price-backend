@@ -160,3 +160,23 @@ func (r *Repository) Update(thing entity.Thing) (entity.Thing, error) {
 
 	return thing, nil
 }
+
+func (r *Repository) Delete(id, userID int) error {
+	query := `UPDATE thing SET is_deleted = TRUE, deleted_at = NOW() WHERE id = $1 AND user_id = $2 AND is_deleted = FALSE`
+
+	result, err := r.db.Exec(query, id, userID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}

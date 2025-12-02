@@ -31,6 +31,7 @@ func main() {
 	router.HandleFunc("/auth", app.AuthHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/admin/user", app.AdminUserController).Methods("POST")
 	router.HandleFunc("/register", app.RegisterController).Methods("POST")
+	router.HandleFunc("/admin/thing/{id:[0-9]+}", app.AdminThingDeleteController).Methods("DELETE")
 	router.HandleFunc("/admin/expense/{id:[0-9]+}", app.AdminExpenseUpdateController).Methods("PUT")
 
 	err = http.ListenAndServe(":8080", router)

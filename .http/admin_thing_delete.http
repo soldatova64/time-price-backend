@@ -1,0 +1,8 @@
+DELETE http://localhost:8080/admin/thing/45
+Content-Type: application/json
+Authorization: Bearer f32abdb2d1a40afc6e41e54469edc917
+
+###
+DELETE http://localhost:8080/admin/thing/11
+Content-Type: application/json
+Authorization: Bearer f32abdb2d1a40afc6e41e54469edc917
