@@ -1,9 +1,9 @@
 POST http://localhost:8080/admin/expense
 Content-Type: application/json
-Authorization: Bearer a33962f9e14a3389f38f365daf61549d
+Authorization: Bearer ad6ce4a9c0d5f660e431fd360530e94c
 
 {
-    "thing_id": 5,
+    "thing_id": 44,
     "sum": 50000,
     "description": "ремонт",
     "expense_date": "2025-05-05T00:00:00Z"
