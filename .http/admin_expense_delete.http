@@ -1,0 +1,8 @@
+DELETE http://localhost:8080/admin/expense/15
+Content-Type: application/json
+Authorization: Bearer 5c428e1ea691d44810cd579e95fd3c40
+
+###
+DELETE http://localhost:8080/admin/expense/3
+Content-Type: application/json
+Authorization: Bearer 7f3322ffb0256bc5f2d7b1365b5d5596
