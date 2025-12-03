@@ -33,6 +33,7 @@ func main() {
 	router.HandleFunc("/register", app.RegisterController).Methods("POST")
 	router.HandleFunc("/admin/thing/{id:[0-9]+}", app.AdminThingDeleteController).Methods("DELETE")
 	router.HandleFunc("/admin/expense/{id:[0-9]+}", app.AdminExpenseUpdateController).Methods("PUT")
+	router.HandleFunc("/admin/expense/{id:[0-9]+}", app.AdminExpenseDeleteController).Methods("DELETE")
 
 	err = http.ListenAndServe(":8080", router)
 	if err != nil {

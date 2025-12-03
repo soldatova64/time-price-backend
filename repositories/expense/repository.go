@@ -77,3 +77,22 @@ func (r *Repository) Update(expense *entity.Expense) (*entity.Expense, error) {
 
 	return expense, nil
 }
+
+func (r *Repository) Delete(id int) error {
+	query := `UPDATE expense SET is_deleted = TRUE, deleted_at = NOW() WHERE id = $1 AND is_deleted = FALSE`
+	result, err := r.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
