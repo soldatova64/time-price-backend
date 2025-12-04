@@ -3,6 +3,7 @@ package user
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"main/entity"
 	"main/helpers"
 )
@@ -71,4 +72,65 @@ func (r *Repository) Add(user *entity.User) (*entity.User, error) {
 	}
 	user.ID = id
 	return user, nil
+}
+
+func (r *Repository) FindByID(id int) (*entity.User, error) {
+	var user entity.User
+	query := `SELECT id, username, email, password, created_at, updated_at, is_deleted, deleted_at 
+              FROM users WHERE id = $1 AND is_deleted = false`
+
+	err := r.db.QueryRow(query, id).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.IsDeleted,
+		&user.DeletedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *Repository) Update(id int, data map[string]interface{}) (*entity.User, error) {
+	query := "UPDATE users SET "
+	params := []interface{}{}
+	paramCount := 1
+
+	if username, ok := data["username"]; ok {
+		query += fmt.Sprintf("username = $%d, ", paramCount)
+		params = append(params, username)
+		paramCount++
+	}
+
+	if password, ok := data["password"]; ok {
+		query += fmt.Sprintf("password = $%d, ", paramCount)
+		params = append(params, password)
+		paramCount++
+	}
+
+	query += "updated_at = NOW() "
+
+	query += fmt.Sprintf("WHERE id = $%d AND is_deleted = false RETURNING id, username, email, created_at, updated_at", paramCount)
+	params = append(params, id)
+
+	var user entity.User
+	err := r.db.QueryRow(query, params...).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
