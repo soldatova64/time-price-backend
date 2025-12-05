@@ -1,0 +1,27 @@
+DELETE http://localhost:8080/admin/user/14
+Content-Type: application/json
+Authorization: Bearer 412d77e36bd771134c6556ec8ad13582
+
+{
+  "username": "testuser",
+  "email": "test@example.com"
+}
+
+###
+DELETE http://localhost:8080/admin/user/14
+Content-Type: application/json
+Authorization: Bearer 412d77e36bd771134c6556ec8ad13582
+
+{
+
+}
+
+###
+DELETE http://localhost:8080/admin/user/5678
+Content-Type: application/json
+Authorization: Bearer 412d77e36bd771134c6556ec8ad13582
+
+{
+  "username": "testuser",
+  "email": "test@example.com"
+}
