@@ -457,3 +457,160 @@ func (app *App) AdminUserUpdateController(writer http.ResponseWriter, request *h
 		http.Error(writer, "Ошибка формирования JSON", http.StatusInternalServerError)
 	}
 }
+
+func (app *App) AdminUserDeleteController(writer http.ResponseWriter, request *http.Request) {
+	meta := models.Meta{Action: "admin_user_delete"}
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
+	writer.Header().Set("Content-Type", "application/json")
+
+	vars := mux.Vars(request)
+	userIDStr := vars["id"]
+
+	targetUserID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "id",
+					Message: "Некорректный ID пользователя",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	// Проверяем авторизацию
+	currentUserID, ok := request.Context().Value("user_id").(int)
+	if !ok {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "auth",
+					Message: "Требуется авторизация",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	// Разрешаем удаление только своего собственного аккаунта
+	if targetUserID != currentUserID {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "permission",
+					Message: "Вы можете удалить только свой собственный аккаунт",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	userRepo := user.NewRepository(app.db)
+
+	// Сначала проверяем, существует ли пользователь
+	existingUser, err := userRepo.FindByID(targetUserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			errorResponse := responses.ErrorResponse{
+				Meta: meta,
+				Errors: []responses.Error{
+					{
+						Field:   "user",
+						Message: "Пользователь не найден",
+					},
+				},
+			}
+			writer.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(writer).Encode(errorResponse)
+			return
+		}
+
+		log.Printf("Error finding user: %v", err)
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "system",
+					Message: "Ошибка при поиске пользователя",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	if existingUser.IsDeleted {
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "user",
+					Message: "Пользователь уже удален",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusConflict)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	err = userRepo.Delete(targetUserID)
+	if err != nil {
+		log.Printf("Error deleting user: %v", err)
+		errorResponse := responses.ErrorResponse{
+			Meta: meta,
+			Errors: []responses.Error{
+				{
+					Field:   "system",
+					Message: "Не удалось удалить пользователя",
+				},
+			},
+		}
+		writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(writer).Encode(errorResponse)
+		return
+	}
+
+	response := struct {
+		Meta models.Meta `json:"meta"`
+		Data struct {
+			ID        int       `json:"id"`
+			Username  string    `json:"username"`
+			Email     string    `json:"email"`
+			Message   string    `json:"message"`
+			DeletedAt time.Time `json:"deleted_at"`
+		} `json:"data"`
+	}{
+		Meta: meta,
+		Data: struct {
+			ID        int       `json:"id"`
+			Username  string    `json:"username"`
+			Email     string    `json:"email"`
+			Message   string    `json:"message"`
+			DeletedAt time.Time `json:"deleted_at"`
+		}{
+			ID:        targetUserID,
+			Username:  existingUser.Username,
+			Email:     existingUser.Email,
+			Message:   "Ваш аккаунт был успешно удален",
+			DeletedAt: time.Now(),
+		},
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(writer).Encode(response); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(writer, "Ошибка формирования JSON", http.StatusInternalServerError)
+	}
+}

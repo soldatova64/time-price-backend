@@ -35,6 +35,7 @@ func main() {
 	router.HandleFunc("/admin/expense/{id:[0-9]+}", app.AdminExpenseUpdateController).Methods("PUT")
 	router.HandleFunc("/admin/expense/{id:[0-9]+}", app.AdminExpenseDeleteController).Methods("DELETE")
 	router.HandleFunc("/admin/user/{id:[0-9]+}", app.AdminUserUpdateController).Methods("PUT")
+	router.HandleFunc("/admin/user/{id:[0-9]+}", app.AdminUserDeleteController).Methods("DELETE")
 
 	err = http.ListenAndServe(":8080", router)
 	if err != nil {
