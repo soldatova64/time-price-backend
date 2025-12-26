@@ -3,7 +3,6 @@ Content-Type: application/json
 Authorization: Bearer ba1cb34863f68ffe378d7471224f2ed0
 
 {
-  "username": "newuser",
   "password": "Qwerty123asd"
 }
 
@@ -13,17 +12,7 @@ Content-Type: application/json
 Authorization: Bearer ba1cb34863f68ffe378d7471224f2ed0
 
 {
-  "username": "newuser",
   "password": "Qwerty123asd"
-}
-
-###
-PUT http://localhost:8080/admin/user/17
-Content-Type: application/json
-Authorization: Bearer ba1cb34863f68ffe378d7471224f2ed0
-
-{
-  "username": "newuserNAME"
 }
 
 ###
@@ -41,7 +30,6 @@ Content-Type: application/json
 Authorization: Bearer ee0eba4a8d823c0cd9d9dc92e77c45f6
 
 {
-  "username": "testuser",
   "password": "Qwerty123ffg"
 }
 
@@ -51,7 +39,6 @@ Content-Type: application/json
 Authorization: Bearer ee0eba4a8d823c0cd9d9dc92e77c45f6
 
 {
-  "username": "",
   "password": ""
 }
 

@@ -354,13 +354,13 @@ func (app *App) AdminUserUpdateController(writer http.ResponseWriter, request *h
 		return
 	}
 
-	if req.Username == nil && req.Password == nil {
+	if req.Password == nil {
 		errorResponse := responses.ErrorResponse{
 			Meta: meta,
 			Errors: []responses.Error{
 				{
-					Field:   "request",
-					Message: "Должно быть указано username или password",
+					Field:   "password",
+					Message: "Пароль обязателен для обновления",
 				},
 			},
 		}
@@ -370,10 +370,6 @@ func (app *App) AdminUserUpdateController(writer http.ResponseWriter, request *h
 	}
 
 	updateData := make(map[string]interface{})
-
-	if req.Username != nil {
-		updateData["username"] = *req.Username
-	}
 
 	if req.Password != nil {
 		// Хешируем новый пароль
